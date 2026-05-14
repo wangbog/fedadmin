@@ -1,0 +1,16 @@
+flask==3.1.3
+flask-sqlalchemy==3.1.1
+flask-login==0.6.3
+flask-admin[images]==2.0.2
+flask-security-too==5.7.1
+flask-mail==0.10.0
+pyotp==2.9.0
+python-dotenv==1.2.2
+argon2-cffi==23.1.0
+pyFF==2.1.5
+xmlsec==1.3.17
+portalocker==3.2.0
+gunicorn==25.1.0
+xmlschema==4.3.1
+python-magic==0.4.27
+pytz==2026.1.post1

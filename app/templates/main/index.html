@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Application Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        .content {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/auth/login">Login</a>
+            {% if current_user.is_authenticated %}
+            <a href="/auth/logout">Logout</a>
+            {% endif %}
+        </div>
+        <h1>Welcome to Flask Application</h1>
+        <div class="content">
+            <p>This is a web application built with Flask framework.</p>
+            <p>The environment is properly configured and ready for development.</p>
+            <p>Click the navigation links above to test.</p>
+        </div>
+    </div>
+</body>
+
+</html>

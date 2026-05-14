@@ -1,0 +1,4 @@
+/* Hide the help icon on list pages */
+th .fa-question-circle {
+    display: none;
+}

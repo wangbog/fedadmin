@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: fedadmin:prod
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_CONFIG=production
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./instance:/app/instance
+      - ./storage:/app/storage
+      - ./logs:/var/log/fedadmin

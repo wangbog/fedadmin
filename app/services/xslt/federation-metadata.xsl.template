@@ -1,0 +1,31 @@
+<xsl:stylesheet version="1.0"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+    xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    exclude-result-prefixes="md mdrpi ds">
+    <xsl:output method="xml" indent="yes" omit-xml-declaration="yes"/>
+
+    <!-- Identity transform for all nodes and attributes -->
+    <xsl:template match="node()|@*">
+        <xsl:copy>
+            <xsl:apply-templates select="node()|@*"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <!-- Process root EntitiesDescriptor: insert PublicationInfo after signature -->
+    <xsl:template match="*[local-name()='EntitiesDescriptor']">
+        <xsl:copy>
+            <!-- Copy all attributes -->
+            <xsl:apply-templates select="@*"/>
+            <!-- Copy signature element first (if present) -->
+            <xsl:apply-templates select="*[local-name()='Signature']"/>
+            <!-- Insert PublicationInfo Extensions -->
+            <md:Extensions>
+                <mdrpi:PublicationInfo creationInstant="CREATION_INSTANT" publisher="PUBLISHER_URL"/>
+            </md:Extensions>
+            <!-- Copy all remaining child nodes -->
+            <xsl:apply-templates select="node()[not(self::*[local-name()='Signature'])]"/>
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>
