@@ -22,7 +22,6 @@ class Config:
 
     # ---- Federation settings ----
     FEDERATION_NAME = os.environ.get("FEDERATION_NAME", "samplefed")
-    FEDERATION_PUBLIC_FILES_URL = os.environ.get("FEDERATION_PUBLIC_FILES_URL")
 
     # ---- Federation metadata regeneration settings ----
     # Time to run daily metadata regeneration (UTC). Format: "hour:minute" (e.g., "2:00")
@@ -135,7 +134,8 @@ def validate_development_config(app):
     """Validate required development configuration items"""
     required_vars = {
         "FEDERATION_NAME": app.config.get("FEDERATION_NAME"),
-        "FEDERATION_PUBLIC_FILES_URL": app.config.get("FEDERATION_PUBLIC_FILES_URL"),
+        "SECRET_KEY": app.config.get("SECRET_KEY"),
+        "SECURITY_PASSWORD_SALT": app.config.get("SECURITY_PASSWORD_SALT"),
     }
     missing = [key for key, value in required_vars.items() if not value]
     if missing:
@@ -147,10 +147,9 @@ def validate_development_config(app):
 def validate_production_config(app):
     """Validate required production configuration items"""
     required_vars = {
+        "FEDERATION_NAME": app.config.get("FEDERATION_NAME"),
         "SECRET_KEY": app.config.get("SECRET_KEY"),
         "SECURITY_PASSWORD_SALT": app.config.get("SECURITY_PASSWORD_SALT"),
-        "FEDERATION_NAME": app.config.get("FEDERATION_NAME"),
-        "FEDERATION_PUBLIC_FILES_URL": app.config.get("FEDERATION_PUBLIC_FILES_URL"),
         "MAIL_SERVER": app.config.get("MAIL_SERVER"),
         "MAIL_USERNAME": app.config.get("MAIL_USERNAME"),
         "MAIL_PASSWORD": app.config.get("MAIL_PASSWORD"),

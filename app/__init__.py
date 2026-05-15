@@ -8,6 +8,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.memory import MemoryJobStore
 from app.utils.logging_helpers import setup_logging, logger
+from app.models import User, Role, Organization, Sp, Idp, Federation
 from app.modules.admin.widgets import SwitchRoleLink
 from app.models.entity_status import EntityStatus
 from app.services.metadata import MetadataService
@@ -61,9 +62,6 @@ def create_app(config_name="default"):
         os.makedirs(dir_path, exist_ok=True)
 
     with app.app_context():
-        # Import models
-        from app.models import User, Role, Organization, Sp, Idp, Federation
-
         # Initialize Flask-Security
         from flask_security import SQLAlchemyUserDatastore
 

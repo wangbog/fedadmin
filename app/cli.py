@@ -1,6 +1,8 @@
 import os
 import click
 import subprocess
+import secrets
+import string
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_security.utils import hash_password
@@ -62,18 +64,8 @@ def init_certs_command():
 @click.command("init-db")
 @with_appcontext
 def init_db_command():
-    """Clear existing data and create new tables."""
-    db_path = current_app.config.get("SQLALCHEMY_DATABASE_URI", "").replace(
-        "sqlite:///", ""
-    )
-    if db_path and os.path.exists(db_path):
-        click.confirm(
-            f"Database file '{db_path}' already exists. Initializing will delete all existing data. Continue?",
-            abort=True,
-        )
-
-    db.drop_all()
-    db.create_all()
+    """Insert default roles, federation configuration, and admin data if they don't exist."""
+    actions_taken = []
 
     # Insert default roles if table is empty
     if not Role.query.first():
@@ -89,7 +81,11 @@ def init_db_command():
         for role in default_roles:
             db.session.add(role)
         db.session.commit()
-        click.echo("Default roles created.")
+        actions_taken.append(
+            "Created default roles (federation, full_member, sp_member)"
+        )
+    else:
+        actions_taken.append("Default roles already exist")
 
     # Insert default federation configuration if table is empty
     if not Federation.query.first():
@@ -100,7 +96,9 @@ def init_db_command():
         )
         db.session.add(default_fed)
         db.session.commit()
-        click.echo("Default federation configuration created.")
+        actions_taken.append("Created default federation configuration")
+    else:
+        actions_taken.append("Federation configuration already exists")
 
     # Create default federation admin organization if not exists
     if not Organization.query.filter_by(
@@ -116,14 +114,15 @@ def init_db_command():
         )
         db.session.add(fed_admin_org)
         db.session.commit()
-        click.echo("Federation admin organization created.")
+        actions_taken.append("Created Federation Admin Organization")
 
         # Create federation admin user
+        password = generate_secure_password()
         user_datastore = security.datastore
         fed_admin_user = user_datastore.create_user(
             username="fedadmin",
             email="fed@example.com",
-            password=hash_password("fedadmin"),
+            password=hash_password(password),
             organization_id=fed_admin_org.organization_id,
             active=True,
         )
@@ -131,118 +130,44 @@ def init_db_command():
         # Assign federation admin roles
         assign_user_roles(fed_admin_user, fed_admin_org)
         db.session.commit()
-        click.echo("Federation admin user created (fed@example.com / fedadmin).")
+        actions_taken.append(
+            f"Created federation admin user (fed@example.com / fedadmin) with randomly generated password"
+        )
 
-    click.echo("Initialized the database.")
+        # Store the password for display
+        generated_password = password
+    else:
+        actions_taken.append("Federation Admin Organization and user already exist")
 
+    # Display summary of actions
+    click.echo("\n=== Database Initialization Summary ===")
+    for action in actions_taken:
+        click.echo(f"- {action}")
 
-@click.command("createorganization")
-@click.option("--name", prompt=True, help="Organization name")
-@click.option("--description", default="", help="Organization description")
-@click.option(
-    "--type",
-    "organization_type",
-    type=click.Choice(
-        ["full_member", "sp_member", "federation_admin"], case_sensitive=False
-    ),
-    default="full_member",
-    help="Organization type: full_member, sp_member, or federation_admin",
-)
-@click.option("--status", default="ready", help="Organization status (ongoing/ready)")
-@click.option("--url", default="", help="Organization URL (e.g., https://example.com)")
-@with_appcontext
-def create_organization_command(name, description, organization_type, status, url):
-    """Create a new organization."""
-    if not description:
-        description = "A federation member organization."
+    if any("already exist" in action for action in actions_taken):
+        click.echo("\nNote: Some data already existed and was not modified.")
+    else:
+        # Display generated password with warning
+        click.echo("\n=== FEDERATION ADMIN USER CREDENTIALS ===")
+        click.echo(f"Username: fedadmin")
+        click.echo(f"Email: fed@example.com")
+        click.echo(f"Password: {generated_password}")
+        click.echo("\n⚠️  IMPORTANT: Please save this password immediately!")
+        click.echo(
+            "   This is your federation admin password. It will NOT be displayed again."
+        )
+        click.echo("   If you lose this password, you will need to reset it manually.")
 
-    # Uniqueness check: only one federation_admin allowed
-    if organization_type == "federation_admin":
-        existing = Organization.query.filter_by(
-            organization_type=OrganizationType.FEDERATION_ADMIN.value
-        ).first()
-        if existing:
-            click.echo(
-                "Error: A federation admin organization already exists. Cannot create another."
-            )
-            return
-
-    type_map = {
-        "full_member": OrganizationType.FULL_MEMBER.value,
-        "sp_member": OrganizationType.SP_MEMBER.value,
-        "federation_admin": OrganizationType.FEDERATION_ADMIN.value,
-    }
-    type_value = type_map[organization_type]
-
-    status_value = (
-        EntityStatus.INIT.value if status == "ongoing" else EntityStatus.READY.value
-    )
-
-    # Create organization
-    organization = Organization(
-        organization_name=name,
-        organization_description=description,
-        organization_type=type_value,
-        organization_status=status_value,
-        organization_url=url,
-    )
-    db.session.add(organization)
-    db.session.commit()
-
-    click.echo(
-        f"Organization '{name}' created with ID {organization.organization_id} (type: {organization_type})"
-    )
+    click.echo("\nDatabase initialization completed.")
 
 
-@click.command("createuser")
-@click.option("--username", prompt=True, help="Username")
-@click.option("--email", prompt=True, help="Email")
-@click.option(
-    "--organization-id",
-    type=int,
-    prompt=True,
-    help="ID of the organization this user belongs to",
-)
-@click.option(
-    "--password", default=None, help="Password (if not provided, defaults to username)"
-)
-@with_appcontext
-def create_user_command(username, email, organization_id, password):
-    """Create a new user associated with an organization, using Flask-Security."""
-    organization = Organization.query.get(organization_id)
-    if not organization:
-        click.echo(f"Error: Organization with ID {organization_id} does not exist.")
-        return
-
-    if password is None:
-        password = username
-        click.echo(f"Password not provided, using username as default password.")
-
-    user_datastore = current_app.extensions["security"].datastore
-
-    # Hash password before creating user
-    hashed_password = hash_password(password)
-
-    user = user_datastore.create_user(
-        username=username,
-        email=email,
-        password=hashed_password,
-        organization_id=organization_id,
-        active=True,
-    )
-
-    # Assign roles based on organization type
-    assign_user_roles(user, organization)
-
-    db.session.commit()
-    click.echo(
-        f"User '{username}' created, associated with organization "
-        f"'{organization.organization_name}' (ID: {organization_id}) with appropriate roles."
-    )
+def generate_secure_password(length=16):
+    """Generate a secure random password."""
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    password = "".join(secrets.choice(alphabet) for _ in range(length))
+    return password
 
 
 def register_commands(app):
     app.cli.add_command(init_certs_command)
     app.cli.add_command(init_db_command)
-    app.cli.add_command(create_organization_command)
-    app.cli.add_command(create_user_command)
