@@ -12,7 +12,7 @@ from app.modules.admin.widgets import SwitchRoleLink
 from app.models.entity_status import EntityStatus
 from app.services.metadata import MetadataService
 from config import config
-from app.extensions import db, federation_admin, member_admin, security, mail
+from app.extensions import db, migrate, federation_admin, member_admin, security, mail
 
 
 def create_app(config_name="default"):
@@ -34,6 +34,7 @@ def create_app(config_name="default"):
 
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     mail.init_app(app)
 
     # Register blueprints

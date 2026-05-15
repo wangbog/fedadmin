@@ -1,10 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_security import Security
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_mail import Mail
 
 db = SQLAlchemy()
+migrate = Migrate()
 security = Security()
 mail = Mail()
 
