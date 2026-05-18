@@ -61,6 +61,112 @@ def init_certs_command():
         )
 
 
+@click.command("regenerate-metadata")
+@with_appcontext
+def regenerate_metadata_command():
+    """Regenerate all federation metadata files.
+
+    This command should be called by system cron for scheduled tasks.
+    It uses file locks to prevent concurrent execution.
+    """
+    from app.services.metadata import MetadataService
+    from app.models.entity_status import EntityStatus
+    from app import create_app
+    from app.utils.logging_helpers import logger
+
+    app = create_app()
+
+    try:
+        with app.app_context():
+            logger.info("Starting scheduled metadata regeneration job")
+
+            # Generate beta metadata (for entities not yet ready)
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+                statuses=[
+                    EntityStatus.INIT.value,
+                    EntityStatus.APPROVING.value,
+                ],
+            )
+
+            # Generate main metadata (for ready entities)
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_OUTPUT",
+                statuses=[EntityStatus.READY.value],
+            )
+
+            # Generate eduGAIN metadata (for eduGAIN-enabled entities)
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+                statuses=[EntityStatus.READY.value],
+                edugain_only=True,
+            )
+
+            logger.info("Scheduled metadata regeneration job completed successfully")
+            click.echo("Metadata regeneration completed successfully!")
+    except Exception as e:
+        logger.error(f"Scheduled metadata regeneration job failed: {e}", exc_info=True)
+        click.echo(f"Metadata regeneration failed: {e}", err=True)
+        raise
+
+
+@click.command("check-edugain-updates")
+@with_appcontext
+def check_edugain_updates_command():
+    """Check for eduGAIN metadata updates.
+
+    This command should be called by system cron for scheduled tasks.
+    It uses file locks to prevent concurrent execution.
+    """
+    from app.services.metadata import MetadataService
+    from app import create_app
+    from app.utils.logging_helpers import logger
+
+    app = create_app()
+
+    try:
+        with app.app_context():
+            logger.info("Starting scheduled eduGAIN metadata updates check job")
+
+            # Check for eduGAIN updates using SHA1 comparison and get statistics
+            stats = MetadataService.check_edugain_updates(app)
+
+            # Regenerate federation metadata if any updates were made
+            if stats["updated"] > 0:
+                logger.info(
+                    f"eduGAIN updates found ({stats['updated']} entities). Regenerating federation metadata."
+                )
+                from app.models.entity_status import EntityStatus
+
+                MetadataService.safe_regenerate(
+                    output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+                    statuses=[
+                        EntityStatus.INIT.value,
+                        EntityStatus.APPROVING.value,
+                    ],
+                )
+                MetadataService.safe_regenerate(
+                    output_path_key="FEDERATION_METADATA_OUTPUT",
+                    statuses=[EntityStatus.READY.value],
+                )
+                MetadataService.safe_regenerate(
+                    output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+                    statuses=[EntityStatus.READY.value],
+                    edugain_only=True,
+                )
+
+            logger.info(
+                f"Scheduled eduGAIN metadata updates check job completed: {stats}"
+            )
+            click.echo(f"eduGAIN update check completed: {stats}")
+    except Exception as e:
+        logger.error(
+            f"Scheduled eduGAIN metadata updates check job failed: {e}", exc_info=True
+        )
+        click.echo(f"eduGAIN update check failed: {e}", err=True)
+        raise
+
+
 @click.command("init-db")
 @with_appcontext
 def init_db_command():
@@ -131,7 +237,7 @@ def init_db_command():
         assign_user_roles(fed_admin_user, fed_admin_org)
         db.session.commit()
         actions_taken.append(
-            f"Created federation admin user (fed@example.com / fedadmin) with randomly generated password"
+            "Created federation admin user (fed@example.com / fedadmin) with randomly generated password"
         )
 
         # Store the password for display
@@ -149,8 +255,8 @@ def init_db_command():
     else:
         # Display generated password with warning
         click.echo("\n=== FEDERATION ADMIN USER CREDENTIALS ===")
-        click.echo(f"Username: fedadmin")
-        click.echo(f"Email: fed@example.com")
+        click.echo("Username: fedadmin")
+        click.echo("Email: fed@example.com")
         click.echo(f"Password: {generated_password}")
         click.echo("\n⚠️  IMPORTANT: Please save this password immediately!")
         click.echo(
@@ -171,3 +277,5 @@ def generate_secure_password(length=16):
 def register_commands(app):
     app.cli.add_command(init_certs_command)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(regenerate_metadata_command)
+    app.cli.add_command(check_edugain_updates_command)

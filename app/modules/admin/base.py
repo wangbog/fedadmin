@@ -1,13 +1,10 @@
-import pytz
-from flask import redirect, url_for, request, current_app
+from flask import redirect, url_for, request
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_security import current_user
 from markupsafe import Markup
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.attributes import get_history
-from apscheduler.triggers.date import DateTrigger
-from datetime import datetime
 from app.services.metadata import MetadataService
 from app.models.entity_status import EntityStatus
 from app.utils.logging_helpers import logger, get_client_ip
@@ -164,99 +161,31 @@ class BaseAdminView(ModelView):
         return query
 
     def _regenerate_metadata(self):
-        """Asynchronously regenerate all federation metadata files.
-
-        This method submits the regeneration task to the background scheduler
-        to avoid blocking the user request. The actual regeneration is performed
-        in the background.
-        """
-        app = current_app._get_current_object()  # Get the actual app instance
-        scheduler = current_app.scheduler
-
-        def do_regenerate():
-            """Inner function that performs the actual regeneration."""
-            with app.app_context():
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-                    statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
-                )
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_OUTPUT",
-                    statuses=[EntityStatus.READY.value],
-                )
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-                    statuses=[EntityStatus.READY.value],
-                    edugain_only=True,
-                )
-
-        # Get misfire_grace_time from config (already has default value in config.py)
-        misfire_grace_time = current_app.config.get(
-            "METADATA_REGENERATION_MISFIRE_GRACE_TIME"
+        """Regenerate all federation metadata files synchronously."""
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+            statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
         )
-
-        job_id = f"regenerate_metadata_{datetime.now(pytz.UTC).timestamp()}"
-        scheduler.add_job(
-            do_regenerate,
-            DateTrigger(run_date=datetime.now(pytz.UTC)),
-            id=job_id,
-            replace_existing=False,
-            misfire_grace_time=misfire_grace_time,
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_OUTPUT",
+            statuses=[EntityStatus.READY.value],
+        )
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+            statuses=[EntityStatus.READY.value],
+            edugain_only=True,
         )
 
     def _regenerate_metadata_beta(self):
-        """Asynchronously regenerate only the beta metadata file."""
-        app = current_app._get_current_object()  # Get the actual app instance
-        scheduler = current_app.scheduler
-
-        def do_regenerate():
-            with app.app_context():
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-                    statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
-                )
-
-        # Get misfire_grace_time from config (already has default value in config.py)
-        misfire_grace_time = current_app.config.get(
-            "METADATA_REGENERATION_MISFIRE_GRACE_TIME"
-        )
-
-        job_id = f"regenerate_metadata_beta_{datetime.now(pytz.UTC).timestamp()}"
-        scheduler.add_job(
-            do_regenerate,
-            DateTrigger(run_date=datetime.now(pytz.UTC)),
-            id=job_id,
-            replace_existing=False,
-            misfire_grace_time=misfire_grace_time,
+        """Regenerate only the beta metadata file synchronously."""
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+            statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
         )
 
     def _retransform_all_entities(self):
-        """Asynchronously re-transform all entities metadata.
-
-        This method submits the re-transformation task to the background scheduler
-        to avoid blocking the user request. The actual re-transformation is performed
-        in the background.
-        """
-        app = current_app._get_current_object()
-        scheduler = current_app.scheduler
-
-        def do_retransform():
-            with app.app_context():
-                MetadataService.safe_retransform_all()
-
-        # Get misfire_grace_time from config (already has default value in config.py)
-        misfire_grace_time = current_app.config.get(
-            "METADATA_REGENERATION_MISFIRE_GRACE_TIME"
-        )
-
-        job_id = f"retransform_all_entities_{datetime.now(pytz.UTC).timestamp()}"
-        scheduler.add_job(
-            do_retransform,
-            DateTrigger(run_date=datetime.now(pytz.UTC)),
-            id=job_id,
-            replace_existing=False,
-            misfire_grace_time=misfire_grace_time,
-        )
+        """Re-transform all entities metadata synchronously."""
+        MetadataService.safe_retransform_all()
 
     def _format_enum(self, value, enum_class):
         """Format enum value: convert numeric to name, return empty string for None."""

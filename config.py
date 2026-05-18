@@ -23,15 +23,6 @@ class Config:
     # ---- Federation settings ----
     FEDERATION_NAME = os.environ.get("FEDERATION_NAME", "samplefed")
 
-    # ---- Federation metadata regeneration settings ----
-    # Time to run daily metadata regeneration (UTC). Format: "hour:minute" (e.g., "2:00")
-    METADATA_REGENERATION_TIME = os.environ.get("METADATA_REGENERATION_TIME", "2:00")
-    # Grace time (in seconds) for async metadata regeneration tasks before they are skipped
-    METADATA_REGENERATION_MISFIRE_GRACE_TIME = int(
-        os.environ.get("METADATA_REGENERATION_MISFIRE_GRACE_TIME", "60")
-    )
-    # Time interval for checking eduGAIN updates (hours)
-    EDUGAIN_CHECK_INTERVAL = int(os.environ.get("EDUGAIN_CHECK_INTERVAL", "1"))
     FEDERATION_METADATA_BETA_OUTPUT = os.path.join(
         PUBLIC_STORAGE, "federation", "fed-metadata-beta.xml"
     )

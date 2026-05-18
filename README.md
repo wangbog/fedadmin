@@ -234,17 +234,6 @@ The scheduled tasks include:
 - Daily metadata regeneration to maintain compliance with eduGAIN requirements
 - Hourly monitoring of entities already in eduGAIN
 
-#### Configuration
-
-The metadata regeneration behavior can be customized via environment variables:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `METADATA_REGENERATION_TIME` | Time to run daily metadata regeneration (UTC). Format: "hour:minute" (e.g., "2:00") | `2:00` |
-| `METADATA_REGENERATION_MISFIRE_GRACE_TIME` | Grace time (in seconds) for async metadata regeneration tasks before they are skipped | `60` |
-
-For more configuration options, see the [Scheduled Tasks Guide](docs/guides/scheduled_tasks.md).
-
 ### Referenced Specifications
 
 | Specification | Description |
