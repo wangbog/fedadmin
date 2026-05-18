@@ -1,15 +1,32 @@
 # Scheduled Tasks
 
-The FedAdmin system includes automated scheduled tasks for maintenance and metadata management. These tasks are defined in `app/__init__.py` and help ensure the federation operates smoothly and remains compliant with external requirements.
+TODO - whole page
+
+The FedAdmin system includes automated scheduled tasks for maintenance and metadata management. These tasks are configured using system cron and Flask CLI commands.
 
 ## Overview
 
-The system currently implements two main scheduled tasks:
+The system implements two main scheduled tasks:
 
 1. **Regenerate Metadata Job** - Daily metadata generation to maintain compliance with eduGAIN requirements
 2. **Check eduGAIN Updates Job** - Configurable monitoring of entities already in eduGAIN
 
-For system administrators, these tasks run automatically in the background using APScheduler. The tasks are configured to handle potential misfires and ensure consistent operation even if the system experiences temporary downtime.
+These tasks are executed using system cron rather than APScheduler to avoid dependency conflicts and ensure reliability. The actual metadata regeneration uses file locks to prevent concurrent execution.
+
+## Architecture
+
+### Why Cron Instead of APScheduler?
+
+- **No dependency conflicts**: Avoids APScheduler version incompatibility issues
+- **System-level reliability**: Cron is a robust system component that won't crash with Python errors
+- **Simplicity**: No need to manage Python job stores or database tables
+- **File locks**: The metadata regeneration already uses `portalocker` for concurrency control
+
+### Task Execution Flow
+
+```
+Cron Daemon → Flask CLI Command → App Context → MetadataService → File Lock → Execution → Result Logging
+```
 
 ## Regenerate Metadata Job
 
@@ -28,12 +45,11 @@ The job can be configured via environment variables in your `.env` file:
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
 | `METADATA_REGENERATION_TIME` | Time for daily metadata regeneration (UTC). Format: "hour:minute" | `"2:00"` |
-| `METADATA_REGENERATION_MISFIRE_GRACE_TIME` | Grace time in seconds for metadata regeneration tasks before they are skipped | `60` |
 
 ### Trigger
 
 - **Schedule**: Daily execution at the time specified by `METADATA_REGENERATION_TIME`
-- **Syntax**: Standard cron format, but configured through environment variables
+- **Command**: `flask regenerate-metadata`
 
 ### Process Details
 
@@ -63,25 +79,26 @@ The job can be configured via environment variables in your `.env` file:
      - Contains all approved entities (status = READY)
      - Used for production federation operations
      - Signed with federation certificate
-   
+
    - **eduGAIN metadata** (`storage/public/federation/fed-metadata-edugain.xml`):
      - Contains only approved entities (status = READY) with eduGAIN enabled
      - Used for interoperability with the international eduGAIN federation
      - Entities included: `idp_edugain = YES` or `sp_edugain = YES`
-   
+
    - **Beta metadata** (`storage/public/federation/fed-metadata-beta.xml`):
      - Contains entities pending approval (status = INIT or APPROVING)
      - Used for testing and preview before official approval
      - Allows federation administrators to review metadata before entities go live
 
-### Troubleshooting
+### Manual Execution
 
-If the metadata regeneration fails:
+You can manually trigger the metadata regeneration:
 
-1. Check logs in your application console for specific error messages
-2. Verify that all entity metadata files are properly formatted and valid
-3. Ensure the federation certificate is present and accessible
-4. Confirm pyFF dependencies are installed and up-to-date
+```bash
+flask regenerate-metadata
+```
+
+This will regenerate all three metadata files synchronously and display the result.
 
 ## Check eduGAIN Updates Job
 
@@ -95,7 +112,7 @@ The Check eduGAIN Updates Job ensures that entities already part of eduGAIN rema
 
 ### Configuration
 
-The eduGAIN check interval can be configured via the environment variable:
+The eduGAIN check interval can be configured via environment variable:
 
 | Variable | Description | Default Value |
 |----------|-------------|---------------|
@@ -104,7 +121,7 @@ The eduGAIN check interval can be configured via the environment variable:
 ### Trigger
 
 - **Schedule**: Configurable interval execution based on `EDUGAIN_CHECK_INTERVAL` setting
-- **Syntax**: Configured via APScheduler with interval (e.g., `*/1` for hourly, `*/2` for every 2 hours)
+- **Command**: `flask check-edugain-updates`
 
 ### Process Details
 
@@ -131,36 +148,66 @@ The eduGAIN check interval can be configured via the environment variable:
    - Provide statistics on the number of entities requiring updates
    - Report any errors encountered during the synchronization process
 
-### Benefits
+### Manual Execution
 
-- **Automatic Synchronization**: Maintains metadata consistency without manual intervention
-- **Reduced Administrative Overhead**: Eliminates need for manual checks and updates
-- **Improved Accuracy**: Ensures local metadata matches the official eduGAIN source
-- **Error Detection**: Identifies when entities are removed from eduGAIN or changed
-- **Configurable Frequency**: Adjust check interval based on federation needs
-
-### Troubleshooting
-
-If the eduGAIN check fails:
-
-1. Verify network connectivity to eduGAIN's API endpoints
-2. Check the status of eduGAIN services (refeds.org)
-3. Ensure EntityIDs are correctly formatted and registered in eduGAIN
-4. Review logs for specific error messages related to API calls or validation
-5. Confirm the `EDUGAIN_CHECK_INTERVAL` is set to a reasonable value
-
-## Common Configuration
-
-Both scheduled tasks can be configured through environment variables in your `.env` file:
+You can manually trigger the eduGAIN updates check:
 
 ```bash
-# Metadata Regeneration Configuration
-METADATA_REGENERATION_TIME=2:00
-METADATA_REGENERATION_MISFIRE_GRACE_TIME=60
-
-# eduGAIN Check Configuration
-EDUGAIN_CHECK_INTERVAL=1
+flask check-edugain-updates
 ```
+
+This will check for updates and display statistics.
+
+## Cron Configuration
+
+### Production Environment
+
+Add the following lines to your system crontab (usually `/etc/cron.d/fedadmin`):
+
+```bash
+# Regenerate metadata daily at 2:00 AM UTC
+0 2 * * * cd /path/to/fedadmin && flask --app run regenerate-metadata >> /var/log/fedadmin/cron.log 2>&1
+
+# Check eduGAIN updates every hour
+0 */1 * * * cd /path/to/fedadmin && flask --app run check-edugain-updates >> /var/log/fedadmin/cron.log 2>&1
+```
+
+### Development Environment
+
+Add the following lines to your system crontab:
+
+```bash
+# Regenerate metadata daily at 2:00 AM and 2:00 PM
+0 2,14 * * * cd /path/to/fedadmin && flask --app run regenerate-metadata >> /tmp/fedadmin-cron.log 2>&1
+
+# Check eduGAIN updates every 2 hours
+0 */2 * * * cd /path/to/fedadmin && flask --app run check-edugain-updates >> /tmp/fedadmin-cron.log 2>&1
+```
+
+### Note on App Context
+
+When running Flask CLI commands via cron, use `flask --app run <command>` to ensure the correct app context is loaded.
+
+### Log Files
+
+Make sure the log directories exist and have proper permissions:
+
+```bash
+mkdir -p /var/log/fedadmin
+chown fedadmin:fedadmin /var/log/fedadmin
+chmod 640 /var/log/fedadmin/cron.log
+```
+
+## User-Triggered Tasks
+
+When you click the "Regenerate Metadata" button in the admin interface, the task is now executed **synchronously** instead of asynchronously. This means:
+
+- You will see a loading indicator while the task is processing
+- The page will redirect to the success/error message after completion
+- No task queue or background scheduler is involved
+- File locks still prevent concurrent execution if multiple admins trigger the task simultaneously
+
+This change was made to simplify the codebase and avoid APScheduler dependencies.
 
 ## Security Considerations
 
@@ -168,13 +215,59 @@ EDUGAIN_CHECK_INTERVAL=1
 - The private key used for signing is stored separately and should have restricted permissions (600)
 - Regular certificate rotation is recommended to maintain security
 - Metadata files are stored in public directories but are still protected by the digital signature
+- Cron jobs should run as the same user as the application to ensure proper file access
+
+## Troubleshooting
+
+### Cron Jobs Not Running
+
+1. Check cron service is enabled:
+   ```bash
+   sudo systemctl status cron
+   sudo systemctl enable cron
+   ```
+
+2. Check cron logs:
+   ```bash
+   sudo tail -f /var/log/syslog | grep CRON
+   ```
+
+3. Verify the command path:
+   ```bash
+   which flask
+   ```
+
+### Task Fails to Execute
+
+1. Test the command manually:
+   ```bash
+   flask --app run regenerate-metadata
+   ```
+
+2. Check for file lock conflicts:
+   ```bash
+   ls -la /tmp/fedadmin-metadata.lock
+   ```
+
+3. Review application logs:
+   ```bash
+   tail -f /var/log/fedadmin/app.log
+   ```
+
+### Manual Metadata Regeneration
+
+If you need to regenerate metadata immediately (e.g., after making changes):
+
+1. Click "Regenerate Metadata" button in the admin interface
+2. Or run: `flask --app run regenerate-metadata`
+3. Wait for completion and verify the generated files
 
 ## Monitoring and Maintenance
 
-- Regularly monitor logs to ensure scheduled tasks are running correctly
+- Regularly monitor cron logs to ensure tasks are running correctly
 - Set up alerts for task failures or missed executions
-- Consider implementing a dashboard for visualizing task execution statistics
 - Keep dependencies (pyFF, lxml, etc.) updated to benefit from bug fixes and security patches
 - Adjust `EDUGAIN_CHECK_INTERVAL` based on federation size and update frequency requirements
+- Monitor disk space for metadata files and logs
 
 For more information about the SAML metadata processing pipeline and storage structure, refer to the main [README.md](../../README.md#saml-metadata-processing) document.

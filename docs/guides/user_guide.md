@@ -1,4 +1,4 @@
-# FedAdmin User Guide
+# User Guide
 
 This document provides comprehensive guidance for users of the FedAdmin federated identity management system. It covers user roles, operational workflows, and system features.
 
@@ -133,10 +133,3 @@ The following applies to both Identity Provider and Service Provider management:
 - `INIT` and `APPROVING` status IdP/SP entities are included in `fed-metadata-beta.xml` for testing and validation
 - `READY` status IdP/SP entities are included in `fed-metadata.xml` for production use
 - `READY` status IdP/SP entities with `idp_edugain` or `sp_edugain` set to `YES` are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
-
-## Scheduled Tasks
-
-For detailed information about the system's scheduled tasks, including configuration details and processes, please refer to the [Scheduled Tasks Guide](scheduled_tasks.md). This document provides comprehensive documentation on:
-
-- Regenerate Metadata Job
-- Check eduGAIN Updates Job

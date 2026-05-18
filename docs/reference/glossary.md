@@ -1,4 +1,4 @@
-# FedAdmin Glossary
+# Glossary
 
 This glossary defines key terms related to federated identity management and the FedAdmin system.
 
@@ -10,7 +10,7 @@ This glossary defines key terms related to federated identity management and the
 - **Entity** - A representation of an IdP or SP within the federation, defined by SAML metadata.
 - **Metadata** - XML documents that describe the technical and administrative information about entities in a federation.
 
-## FedAdmin Specific Terms
+## Specific Terms
 
 - **Federation Administrator** - User role with full access to all organizations and entities, responsible for federation-wide operations.
 - **Member Administrator** - User role with access limited to their own organization's data, responsible for managing entities within their organization.

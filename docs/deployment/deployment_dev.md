@@ -2,7 +2,7 @@
 
 Development environment uses a docker container (`Dockerfile`) that includes development tools and uses Flask's built-in development server (`flask run`). We use Visual Studio Code with the Dev Container extension to manage the development environment, which minimizes issues caused by environment inconsistencies.
 
-### Important Information
+## Important Information
 
 - **Container User**: Runs as `fedadmin` user (UID/GID: 5000) for security
 - **Volume Mapping**: `.` (project root) → `/app` (entire project is bind mounted, and WORKDIR is /app)
@@ -10,7 +10,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
   - Database path: `./instance/fedadmin-dev.db` (host) ↔ `/app/instance/fedadmin-dev.db` (container)
   - Log path: `/var/log/fedadmin/` (only in container)
 
-### Setup Steps
+## Setup Steps
 
 1. **Prepare the host system**
 
@@ -66,14 +66,14 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
     > **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-### Access the application
+## Access the application
 
 After completing the setup steps, verify everything is working:
 
 1. Visit http://127.0.0.1:5000/
 2. Try logging in with the federation admin account: `fed@example.com` / `the generated password`
 
-### Daily Development
+## Daily Development
 
 - **Edit code**: Modify files in VS Code, Flask auto-reloads automatically (FLASK_DEBUG=1)
 - **Change dependencies**: 
@@ -88,7 +88,7 @@ After completing the setup steps, verify everything is working:
   2. Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container
 - **Stop container**: Close VS Code window; it will automatically reconnect next time you open it
 
-### Troubleshooting
+## Troubleshooting
 
 If the container fails to start, follow these steps:
 
@@ -106,3 +106,7 @@ If the container fails to start, follow these steps:
 
 2. **Reset and start over**
    - Press `F1` → "Dev Containers: Rebuild Container" to rebuild and restart
+
+## Scheduled Tasks
+
+TODO
