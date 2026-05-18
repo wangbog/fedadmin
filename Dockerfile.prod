@@ -24,7 +24,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-COPY .env.prod.example .env
+COPY gunicorn.conf.py /etc/gunicorn.conf.py
 
 # Change ownership of /app directory to fedadmin user
 RUN chown -R fedadmin:fedadmin /app
@@ -34,4 +34,4 @@ EXPOSE 5000
 # Switch to fedadmin user
 USER fedadmin
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "run:app"]
+CMD ["gunicorn", "run:app", "-c", "/etc/gunicorn.conf.py"]

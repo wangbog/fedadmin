@@ -2,18 +2,16 @@
 
 Production environment uses a docker container (`Dockerfile.prod`) that uses Gunicorn as the WWSGI server with multiple workers.
 
-### Important Information
+## Important Information
 
 - **Container User**: Runs as `fedadmin` user (UID/GID: 5000) for security
-- **Task Queue**: Uses SQLAlchemyJobStore for persistent and deduplicated task scheduling across multiple workers
 - **Volume Mapping**: Bind mounts for specific directories
   - Storage path: `./data/storage/` (host) ↔ `/app/app/storage/` (container)
   - Database path: `./data/instance/fedadmin-prod.db` (host) ↔ `/app/instance/fedadmin-prod.db` (container)
   - Log path: `./data/logs/` (host) ↔ `/var/log/fedadmin/` (container)
-- **Scheduler Table**: Task queue stored in existing database as `scheduler_jobs` table
-- **Backup**: Regularly backup `./data/instance/`, `./data/storage/`, and `./data/logs/` directories on host server
+- **Backup**: Please regularly backup above directories on host server
 
-### Steps
+## Setup Steps
 
 1. **Prepare the host system** (Linux only)
    
@@ -26,7 +24,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    > ```
    >
    > **💡 Note:** If UID 5000 conflicts, change it in:
-   > - `Dockerfile.prod` (line 16): `groupadd -g 5000` and `useradd -u 5000`
+   > - `Dockerfile.prod`: `groupadd -g 5000` and `useradd -u 5000`
 
    ```bash
    # Create fedadmin group and user (if not already exists)
@@ -44,7 +42,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
 2. **Prepare configuration file**
    
    ```bash
-   # Create .env file from template
+   # Create .env.prod file from template
    cp .env.prod.example .env
    ```
 
@@ -58,7 +56,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    
    ```bash
    # Build production image
-   docker build -f Dockerfile.prod -t fedadmin:prod .
+   docker-compose -f docker-compose.prod.yml build
    
    # Start with Docker Compose
    docker-compose -f docker-compose.prod.yml up -d
@@ -70,51 +68,38 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
 
     ```bash
     # Generate signing certificates for SAML metadata
-    docker-compose -f docker-compose.prod.yml exec web flask init-certs
+    docker exec fedadmin flask init-certs
 
     # Create/update database tables using flask-migration
-    docker-compose -f docker-compose.prod.yml exec web flask db upgrade
+    docker exec fedadmin flask db upgrade
 
     # Insert default data if tables are empty:
     # - Default roles (federation, full_member, sp_member)
     # - Federation configuration
     # - Federation Admin Org organization
     # - fedadmin user with randomly generated password (fed@example.com)
-    docker-compose -f docker-compose.prod.yml exec web flask init-db
+    docker exec fedadmin flask init-db
     ```
 
-5. **Verify the application**
-   
-   ```bash
-   curl https://your-domain.com
-   ```
+    > **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-### What Each Command Does
+## Access the application
 
-| Command | Description |
-|---------|-------------|
-| `flask db upgrade` | Creates or updates database tables based on the migration scripts. This command creates the schema using flask-migration. |
-| `flask init-certs` | Generates X.509 certificate and private key for signing federation metadata. |
-| `flask init-db` | Inserts default data if tables are empty: default roles (federation, full_member, sp_member), federation configuration, federation admin organization, and admin user (fed@example.com). This command does not modify existing data. **Note:** The generated password is only displayed once during initialization. |
+After completing the setup steps, verify everything is working:
+
+1. Visit http://127.0.0.1:15000/
+2. Try logging in with the federation admin account: `fed@example.com` / `the generated password`
 
 ### Daily Operations
 
 - **View application logs**:
-  1.  Using Docker logs: `docker-compose -f docker-compose.prod.yml logs -f web`. This shows the Gunicorn and Flask application's stdout/stderr output.
-  2.  Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container. `docker-compose -f docker-compose.prod.yml exec web tail -f /var/log/fedadmin/app.log`
-- **Monitor container status**: `docker-compose -f docker-compose.prod.yml ps`
-- **Stop all containers**: `docker-compose -f docker-compose.prod.yml down`
-- **Restart container**: `docker-compose -f docker-compose.prod.yml restart web`
-- **Execute Flask commands inside container**:
-  
-  > **⚠ Important:** In production, avoid executing commands that directly modify the database or production files. Use the web interface for all business operations. The `flask init-db` and `flask init-certs` commands are only intended for initial setup as described in Step 4.
+  1.  Using Docker logs: On your host machine, run `docker-compose -f docker-compose.prod.yml logs -f web`. This shows the Gunicorn and Flask application's stdout/stderr output.
+  2.  Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container. You can view it inside the container with `docker exec fedadmin sh -c "tail -f /var/log/fedadmin/app.log"`, or directly on the host at `./data/logs/app.log`.
+- **Monitor container status**: `docker ps -a | grep fedadmin`
+- **Stop all containers**: `docker stop fedadmin`
+- **Restart container**: `docker restart fedadmin`
 
-  ```bash
-  # List all available Flask commands
-  docker-compose -f docker-compose.prod.yml exec web flask --list-commands
-  ```
-
-### Troubleshooting
+## Troubleshooting
 
 If the container fails to start, follow these steps:
 
@@ -130,19 +115,12 @@ If the container fails to start, follow these steps:
    docker logs -f <container-id>
    ```
 
-2. **Common issues and solutions**
-   
-   | Error | Solution |
-   |-------|----------|
-   | `Port already in use` | Stop other services using port 5000, or change port in `docker-compose.prod.yml` |
-   | `Permission denied` | Check file permissions, ensure running as correct user |
-
-3. **Reset and start over**
+2. **Reset and start over**
    ```bash
-   # Stop and remove all containers and volumes
-   docker-compose -f docker-compose.prod.yml down -v
-   
-   # Rebuild and restart
+   # Stop and remove all containers and data volumes
+   docker stop fedadmin && docker rm fedadmin
+
+   # Rebuild and start the container
    docker-compose -f docker-compose.prod.yml up -d --build
    ```
 
@@ -153,16 +131,14 @@ If the container fails to start, follow these steps:
    - Production environment automatically validates required environment variables on startup
    - Missing required variables will cause startup failure
 
-2. **Recommend using reverse proxy**
-   - HTTPS Certificate Management: Using a reverse proxy (such as Nginx or Apache) makes it convenient to manage SSL certificates
-   - Public Path Mapping: The `/path/to/your/project/app/storage/public/` directory needs to be mapped as a public path to allow access to federation metadata files
-
+2. **Use a reverse proxy (such as Nginx or Apache)**
+   - HTTPS Certificate Management.
+   - Security Settings.
+   - Public Path Mapping: The container directory `/app/app/storage/public/` is mapped to the host path `./data/storage/public/`. This directory contains federation related public metadata files (e.g., `fed-metadata.xml`, `fed-metadata-edugain.xml`, `fed-metadata-beta.xml` under `./data/storage/public/federation/`). A reverse proxy is recommended to expose these metadata files publicly.
 
 ## Scheduled Tasks
 
 TODO
-
-For detailed information about the system's scheduled tasks, including configuration details and processes, please refer to the [Scheduled Tasks Guide](scheduled_tasks.md). This document provides comprehensive documentation on:
 
 - Regenerate Metadata Job
 - Check eduGAIN Updates Job

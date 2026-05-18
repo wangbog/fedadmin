@@ -24,7 +24,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-COPY .env.dev.example .env
 
 # Change ownership of /app directory to fedadmin user
 RUN chown -R fedadmin:fedadmin /app

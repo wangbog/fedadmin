@@ -23,7 +23,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
    > ```
    >
    > **💡 Note:** If UID 5000 conflicts, change it in:
-   > - `Dockerfile` (line 16): `groupadd -g 5000` and `useradd -u 5000`
+   > - `Dockerfile`: `groupadd -g 5000` and `useradd -u 5000`
    > - `.devcontainer/devcontainer.json` (line 27 and 28): `"uid": "5000"` and `"gid": "5000"`
 
 2. **Prepare configuration file**
@@ -52,7 +52,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
     ```bash
     # Generate signing certificates for SAML metadata
     flask init-certs
-    
+
     # Create/update database tables using flask-migration
     flask db upgrade
 
@@ -84,8 +84,8 @@ After completing the setup steps, verify everything is working:
   1. Edit `.env` file
   2. Restart container: Press `F1` → "Dev Containers: Rebuild Container"
 - **View application logs**:
-  1. Using Docker logs: On your host machine, run `docker compose logs -f web` from the project root directory (where `docker-compose.yml` is located)
-  2. Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container
+  1. Using Docker logs: On your host machine, run `docker compose logs -f web` from the project root directory (where `docker-compose.yml` is located).
+  2. Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container.
 - **Stop container**: Close VS Code window; it will automatically reconnect next time you open it
 
 ## Troubleshooting
@@ -110,3 +110,6 @@ If the container fails to start, follow these steps:
 ## Scheduled Tasks
 
 TODO
+
+- Regenerate Metadata Job
+- Check eduGAIN Updates Job
