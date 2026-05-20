@@ -13,9 +13,11 @@ A web based management tool for NREN identity federation administrators to opera
 
 ### Project Background
 
-We are the CARSI team, which manages China's NREN Identity Federation. 
+We are the **CARSI** team, which manages China's NREN Identity Federation. 
 
-**About CARSI**: The China Education and Research Computer Network Federated Authentication and Resource Sharing Infrastructure (CARSI) provides federal authentication and global academic information resource sharing services for universities and research institutions that have established unified identity authentication on campus networks. CARSI joined eduGAIN in 2019 and over the years we have accumulated extensive experience in managing federations. Based on this practical experience, we decided to share our knowledge and tools through this open-source project. (For more information about CARSI, please refer to https://www.carsi.edu.cn)
+The China Education and Research Computer Network Federated Authentication and Resource Sharing Infrastructure (**CARSI**) provides federal authentication and global academic information resource sharing services for universities and research institutions that have established unified identity authentication on campus networks. CARSI joined eduGAIN in 2019 and over the years we have accumulated extensive experience in managing federations. 
+
+Based on this practical experience, we decided to share our knowledge and tools through this open-source project. (For more information about CARSI, please refer to https://www.carsi.edu.cn)
 
 ### Who/When/Why Use FedAdmin
 

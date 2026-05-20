@@ -27,3 +27,31 @@ This practice is highly insecure and poses significant security risks. Using use
 4. Consider using secure password reset flows instead of forcing password changes on first login
 5. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
 6. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
+
+## 3. Synchronous Metadata Transformation and Regeneration
+
+When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates the federation metadata automatically after each operation. 
+
+When member organization or federation information is modified, the system synchronously transforms all entities belonging to that member organization or federation and regenerates the federation metadata automatically. 
+
+**Potential Improvement:**
+While synchronous transformation and regeneration ensures that metadata is always up-to-date, it may have performance implications for federations with many entities. Consider implementing asynchronous processing.
+
+This would improve system responsiveness, especially during bulk updates or when working with large federations.
+
+**Technical Background:**
+We initially implemented APScheduler (with MemoryJobStore) for async processing but reverted to synchronous execution due to these challenges:
+
+1. **APScheduler pkg_resources Deprecation Warning**
+   
+   This project uses `pyFF==2.1.5` which depends on **APScheduler 3.6.3**, an older version that imports the deprecated `pkg_resources` API. This causes warnings during initialization:
+
+   ```
+   /usr/local/lib/python3.12/site-packages/apscheduler/__init__.py:1: UserWarning: pkg_resources is deprecated as an API... The pkg_resources package is slated for removal as early as 2025-11-30.
+   ```
+
+   APScheduler will fail after `pkg_resources` is removed (2025-11-30). Upgrading APScheduler would break pyFF's functionality.
+
+2. **Production Environment Multi-process Constraints**
+   
+   APScheduler works in single-process development but fails in Gunicorn's multi-production setup. Alternative solutions (Redis, database-backed schedulers, Celery) all introduce additional infrastructure dependencies beyond our lightweight architecture.

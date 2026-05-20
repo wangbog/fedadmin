@@ -11,7 +11,6 @@ This document provides comprehensive guidance for users of the FedAdmin federate
 5. [Identity Provider Management](#identity-provider-management)
 6. [Service Provider Management](#service-provider-management)
 7. [Note on Metadata Files](#note-on-metadata-files)
-8. [Scheduled Tasks](#scheduled-tasks)
 
 ## User Roles
 

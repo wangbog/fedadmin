@@ -27,11 +27,11 @@ storage/
         └── fed.key                    # Private key (SECRET - never share, keep permissions restricted)
 ```
 
-> **⚠️ Security Warning:** The private key (`fed.key`) is critical for signing federation metadata. Ensure it is stored securely with restricted permissions (600) and never exposed to unauthorized users. If compromised, regenerate certificates immediately using `flask init-certs`, and don't forget to exchange the new certificate with eguGAIN.
+> **⚠️ Security Warning:** The private key (`fed.key`) is critical for signing federation metadata. Ensure it is stored securely with restricted permissions (600) and never exposed to unauthorized users. If compromised, regenerate certificates immediately using `flask init-certs`, and don't forget to exchange the new certificate with eduGAIN.
 
 ## Database
 
 The application uses SQLite for data storage:
 
-- **Development**: `./instance/fedadmin.db` (host) ↔ `/app/instance/fedadmin.db` (container)
-- **Production**: `./instance/fedadmin-prod.db` (host) ↔ `/app/instance/fedadmin-prod.db` (container)
+- **Development**: `./instance/fedadmin-dev.db` (host) ↔ `/app/instance/fedadmin-dev.db` (container)
+- **Production**: `./data/instance/fedadmin-prod.db` (host) ↔ `/app/instance/fedadmin-prod.db` (container)

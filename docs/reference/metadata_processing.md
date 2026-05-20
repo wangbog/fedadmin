@@ -76,6 +76,10 @@ The system regenerates the federation metadata aggregate both on-demand and on a
 
 ### Synchronous Regeneration
 
-When entities are created, updated, or deleted through the admin interface, the system synchronously regenerate the metadata . 
+When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates the federation metadata automatically after each operation. 
 
-TODO
+When member organization or federation information is modified, the system synchronously transforms all entities belonging to that member organization or federation and regenerates the federation metadata automatically. 
+
+### Scheduled Regeneration
+
+For regular metadata maintenance and compliance with eduGAIN requirements, the system can also regenerate metadata on a scheduled basis. See [Scheduled Tasks](../deployment/scheduled_tasks.md) for details on configuring automated metadata regeneration.
