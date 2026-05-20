@@ -7,7 +7,7 @@ services:
     image: fedadmin
     container_name: fedadmin
     ports:
-      - "15000:5000"
+      - "5000:5000"
     env_file:
       - .env
     restart: unless-stopped

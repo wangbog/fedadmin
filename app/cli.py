@@ -61,6 +61,106 @@ def init_certs_command():
         )
 
 
+@click.command("init-db")
+@with_appcontext
+def init_db_command():
+    """Insert default roles, federation configuration, and admin data if they don't exist."""
+    actions_taken = []
+
+    # Insert default roles if table is empty
+    if not Role.query.first():
+        default_roles = [
+            Role(name="federation", description="Federation administrator"),
+            Role(
+                name="full_member",
+                description="Full(Identity Provider + Service Provider) member",
+            ),
+            Role(name="sp_member", description="Service Provider member"),
+        ]
+
+        for role in default_roles:
+            db.session.add(role)
+        db.session.commit()
+        actions_taken.append(
+            "Created default roles (federation, full_member, sp_member)"
+        )
+    else:
+        actions_taken.append("Default roles already exist")
+
+    # Insert default federation configuration if table is empty
+    if not Federation.query.first():
+        default_fed = Federation(
+            registration_authority="https://example.com",
+            registration_policy_url="https://example.com/policy",
+            publisher="https://example.com",
+        )
+        db.session.add(default_fed)
+        db.session.commit()
+        actions_taken.append("Created default federation configuration")
+    else:
+        actions_taken.append("Federation configuration already exists")
+
+    # Create default federation admin organization if not exists
+    if not Organization.query.filter_by(
+        organization_type=OrganizationType.FEDERATION_ADMIN.value
+    ).first():
+        # Create federation admin organization
+        fed_admin_org = Organization(
+            organization_name="Federation Admin Org",
+            organization_description="This is the federation admin organization.",
+            organization_type=OrganizationType.FEDERATION_ADMIN.value,
+            organization_status=EntityStatus.READY.value,
+            organization_url="https://example.com",
+        )
+        db.session.add(fed_admin_org)
+        db.session.commit()
+        actions_taken.append("Created Federation Admin Organization")
+
+        # Create federation admin user
+        password = generate_secure_password()
+        user_datastore = security.datastore
+        fed_admin_user = user_datastore.create_user(
+            username="fedadmin",
+            email="fed@example.com",
+            password=hash_password(password),
+            organization_id=fed_admin_org.organization_id,
+            active=True,
+        )
+
+        # Assign federation admin roles
+        assign_user_roles(fed_admin_user, fed_admin_org)
+        db.session.commit()
+        actions_taken.append(
+            "Created federation admin user (fed@example.com / fedadmin) with randomly generated password"
+        )
+
+        # Store the password for display
+        generated_password = password
+    else:
+        actions_taken.append("Federation Admin Organization and user already exist")
+
+    # Display summary of actions
+    click.echo("\n=== Database Initialization Summary ===")
+    for action in actions_taken:
+        click.echo(f"- {action}")
+
+    if any("already exist" in action for action in actions_taken):
+        click.echo("\nNote: Some data already existed and was not modified.")
+    else:
+        # Display generated password with warning
+        click.echo("\n=== FEDERATION ADMIN USER CREDENTIALS ===")
+        click.echo("Username: fedadmin")
+        click.echo("Email: fed@example.com")
+        click.echo(f"Password: {generated_password}")
+        click.echo("\n⚠️  IMPORTANT: Please save this password immediately!")
+        click.echo(
+            "   This is your federation admin password. It will NOT be displayed again."
+        )
+        click.echo("   If you lose this password, you will need to reset it manually.")
+
+    click.echo("\nDatabase initialization completed.")
+
+
 @click.command("regenerate-metadata")
 @with_appcontext
 def regenerate_metadata_command():
@@ -165,106 +265,6 @@ def check_edugain_updates_command():
         )
         click.echo(f"eduGAIN update check failed: {e}", err=True)
         raise
-
-
-@click.command("init-db")
-@with_appcontext
-def init_db_command():
-    """Insert default roles, federation configuration, and admin data if they don't exist."""
-    actions_taken = []
-
-    # Insert default roles if table is empty
-    if not Role.query.first():
-        default_roles = [
-            Role(name="federation", description="Federation administrator"),
-            Role(
-                name="full_member",
-                description="Full(Identity Provider + Service Provider) member",
-            ),
-            Role(name="sp_member", description="Service Provider member"),
-        ]
-
-        for role in default_roles:
-            db.session.add(role)
-        db.session.commit()
-        actions_taken.append(
-            "Created default roles (federation, full_member, sp_member)"
-        )
-    else:
-        actions_taken.append("Default roles already exist")
-
-    # Insert default federation configuration if table is empty
-    if not Federation.query.first():
-        default_fed = Federation(
-            registration_authority="https://example.com",
-            registration_policy_url="https://example.com/policy",
-            publisher="https://example.com",
-        )
-        db.session.add(default_fed)
-        db.session.commit()
-        actions_taken.append("Created default federation configuration")
-    else:
-        actions_taken.append("Federation configuration already exists")
-
-    # Create default federation admin organization if not exists
-    if not Organization.query.filter_by(
-        organization_type=OrganizationType.FEDERATION_ADMIN.value
-    ).first():
-        # Create federation admin organization
-        fed_admin_org = Organization(
-            organization_name="Federation Admin Org",
-            organization_description="This is the federation admin organization.",
-            organization_type=OrganizationType.FEDERATION_ADMIN.value,
-            organization_status=EntityStatus.READY.value,
-            organization_url="https://example.com",
-        )
-        db.session.add(fed_admin_org)
-        db.session.commit()
-        actions_taken.append("Created Federation Admin Organization")
-
-        # Create federation admin user
-        password = generate_secure_password()
-        user_datastore = security.datastore
-        fed_admin_user = user_datastore.create_user(
-            username="fedadmin",
-            email="fed@example.com",
-            password=hash_password(password),
-            organization_id=fed_admin_org.organization_id,
-            active=True,
-        )
-
-        # Assign federation admin roles
-        assign_user_roles(fed_admin_user, fed_admin_org)
-        db.session.commit()
-        actions_taken.append(
-            "Created federation admin user (fed@example.com / fedadmin) with randomly generated password"
-        )
-
-        # Store the password for display
-        generated_password = password
-    else:
-        actions_taken.append("Federation Admin Organization and user already exist")
-
-    # Display summary of actions
-    click.echo("\n=== Database Initialization Summary ===")
-    for action in actions_taken:
-        click.echo(f"- {action}")
-
-    if any("already exist" in action for action in actions_taken):
-        click.echo("\nNote: Some data already existed and was not modified.")
-    else:
-        # Display generated password with warning
-        click.echo("\n=== FEDERATION ADMIN USER CREDENTIALS ===")
-        click.echo("Username: fedadmin")
-        click.echo("Email: fed@example.com")
-        click.echo(f"Password: {generated_password}")
-        click.echo("\n⚠️  IMPORTANT: Please save this password immediately!")
-        click.echo(
-            "   This is your federation admin password. It will NOT be displayed again."
-        )
-        click.echo("   If you lose this password, you will need to reset it manually.")
-
-    click.echo("\nDatabase initialization completed.")
 
 
 def generate_secure_password(length=16):

@@ -14,30 +14,30 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
 1. **Prepare the host system**
 
-   **💡 Note:** Since our development environment is on Windows 11, this is the only host system we have tested. Windows do not need us to perform this step as Docker Desktop handles permissions automatically, if you're hosting on Linux/macOS, you may refer to below.
-   
-   > **Check if UID 5000 is available:**
-   > ```bash
-   > # Check if UID 5000 is already in use
-   > getent passwd 5000
-   > ```
-   >
-   > **💡 Note:** If UID 5000 conflicts, change it in:
-   > - `Dockerfile`: `groupadd -g 5000` and `useradd -u 5000`
-   > - `.devcontainer/devcontainer.json` (line 27 and 28): `"uid": "5000"` and `"gid": "5000"`
+   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, you should pay attenion with the user/group management below on these platforms.
+
+   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000. Docker Desktop on Windows do not need us to perform this step as it handles permissions automatically, if you're hosting on Linux/macOS, you may refer to below to check if UID 5000 is already in use on host server to avoid confliction.
+
+   ```bash
+   getent passwd 5000
+   ```
+
+   If UID 5000 is already in use, change our docker file to use another UID:
+   - `Dockerfile`: `groupadd -g 5000` and `useradd -u 5000`
+   - `.devcontainer/devcontainer.json` (line 27 and 28): `"uid": "5000"` and `"gid": "5000"`
 
 2. **Prepare configuration file**
-   
+
    ```bash
    # Create .env file from template
    cp .env.dev.example .env
    ```
 
-   > **⚠️ Important:** 
-   > - You must change all REQUIRED values before building the docker image! 
-   > - Always generate secure random keys using `openssl rand -hex 32`.
-   > - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
-   > - Any changes in this configuration file needs a container restart.
+   **⚠️ Important:** 
+   - You must change all REQUIRED values before building the docker image! 
+   - Always generate secure random keys using `openssl rand -hex 32`.
+   - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
+   - Any changes in this configuration file needs a container restart.
 
 3. **Open the project in VS Code**
    - Open the project root in VS Code
@@ -45,26 +45,37 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
    - VS Code will build the image, start the container, and connect your workspace (first time may take a few minutes)
    - The Flask development server starts automatically when the container starts.
 
-4. **Initialize database and certificates**
-    
-    After the container is ready, open the integrated terminal and run:
+4. **Initialize federation metadata certificates and database**
 
-    ```bash
-    # Generate signing certificates for SAML metadata
-    flask init-certs
+   After the container is ready, open the integrated terminal and run:
 
-    # Create/update database tables using flask-migration
-    flask db upgrade
+   ```bash
+   # Generate signing certificates for SAML metadata
+   flask init-certs
 
-    # Insert default data if tables are empty:
-    # - Default roles (federation, full_member, sp_member)
-    # - Federation configuration
-    # - Federation Admin Org organization
-    # - fedadmin user with randomly generated password (fed@example.com)
-    flask init-db
-    ```
+   # Create/update database tables using flask-migration
+   flask db upgrade
 
-    > **⚠️ Important:** The generated password will be shown on console, please keep it safe!
+   # Insert default data if tables are empty:
+   # - Default roles (federation, full_member, sp_member)
+   # - Federation configuration
+   # - Federation Admin Org organization
+   # - fedadmin user with randomly generated password (fed@example.com)
+   flask init-db
+   ```
+
+   **⚠️ Important:** The generated password will be shown on console, please keep it safe!
+
+   Check the files are generate:
+
+   ```bash
+   # Check the generated files
+   fedadmin ➜ /app (main) $ ls app/storage/private/federation/
+   fed.crt  fed.key
+
+   fedadmin ➜ /app (main) $ ls instance/
+   fedadmin-dev.db
+   ```
 
 ## Access the application
 
@@ -93,13 +104,14 @@ After completing the setup steps, verify everything is working:
 If the container fails to start, follow these steps:
 
 1. **View container logs**
+
    ```bash
    # Find container ID
    docker ps -a | grep fedadmin
-   
+
    # View logs (replace <container-id> with actual ID)
    docker logs <container-id>
-   
+
    # Or follow logs in real-time
    docker logs -f <container-id>
    ```

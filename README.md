@@ -7,7 +7,7 @@
 
 # FedAdmin
 
-A web based management tool for NREN identity federation administrators to operate federations in a scalable manner, managing Identity Providers (IdPs) and Service Providers (SPs), and exchanging metadata with eduGAIN metadata service in an automated manner.
+A web based management tool for NREN identity federation administrators to operate federations, managing Identity Providers (IdPs) and Service Providers (SPs), and exchanging metadata with eduGAIN metadata service.
 
 ## 1. About FedAdmin
 
@@ -15,9 +15,7 @@ A web based management tool for NREN identity federation administrators to opera
 
 We are the CARSI team, which manages China's NREN Identity Federation. 
 
-**About CARSI**: The China Education and Research Computer Network Federated Authentication and Resource Sharing Infrastructure (CARSI) provides federal authentication and global academic information resource sharing services for universities and research institutions that have established unified identity authentication on campus networks. No VPN is required, and is not restricted by the authorization of the campus IP address. You can directly access authorized resources using a campus network account anywhere with the internet.
-
-CARSI joined eduGAIN and over the years we have accumulated extensive experience in managing federations. Based on this practical experience, we decided to share our knowledge and tools through this open-source project. (For more information about CARSI, please refer to https://www.carsi.edu.cn/index_en.html)
+**About CARSI**: The China Education and Research Computer Network Federated Authentication and Resource Sharing Infrastructure (CARSI) provides federal authentication and global academic information resource sharing services for universities and research institutions that have established unified identity authentication on campus networks. CARSI joined eduGAIN in 2019 and over the years we have accumulated extensive experience in managing federations. Based on this practical experience, we decided to share our knowledge and tools through this open-source project. (For more information about CARSI, please refer to https://www.carsi.edu.cn)
 
 ### Who/When/Why Use FedAdmin
 
@@ -28,7 +26,7 @@ CARSI joined eduGAIN and over the years we have accumulated extensive experience
 **Why**: 
 - This management concept and workflow have been successfully used in CARSI's actual projects for many years
 - The system can meet common federation management scenarios and shield the complexity of SAML metadata
-- It provides a scalable solution for operating federations and exchanging metadata with eduGAIN metadata service in an automated manner
+- It provides a solution for operating federations and exchanging metadata with eduGAIN metadata service
 
 See [eduGAIN: Join As Federation](https://technical.edugain.org/joining_checklist) for a practical checklist before joining eduGAIN.
 
@@ -41,6 +39,21 @@ FedAdmin supports both opt-in and opt-out models for managing entities in the fe
 **Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
 
 See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/spaces/eduGAIN/pages/121348068/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
+
+Successfully updated the README.md file by adding a new sentence to the "About opt-in/opt-out" section. The new sentence reads: "Additionally, FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity."
+
+FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity, this is the unique way we support both opt-in and opt-out.
+
+### Primary Deliverables
+
+Administrators of NREN‑operated identity federations use this project to manage their federation’s Identity Providers (IdPs) and Service Providers (SPs). The primary deliverables are federation metadata files stored under `./app/storage/public/federation/` (the final host‑side path may vary depending on deployment configuration):
+
+**fed-metadata-beta.xml**: Beta metadata for entities pending approval. This file is ideal for federations that wish to maintain a separate test environment to verify the functionality of newly added IdPs and SPs.
+
+**fed-metadata.xml**: Production metadata containing all approved entities. Entities validated in the test environment are promoted here, and all production services operate based on this file.
+
+
+**fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined above, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
 
 ## 2. Project Overview
 

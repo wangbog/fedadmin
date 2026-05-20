@@ -11,7 +11,7 @@ storage/
 │   │   └── {organization_id}/         # Public member files for this member
 │   │       └── ...                    # Reserved: public files for this member
 │   └── federation/                    # Public federation files
-│       ├── federation-metadata.xml    # Production metadata: all approved entities (status = READY)
+│       ├── fed-metadata.xml           # Production metadata: all approved entities (status = READY)
 │       ├── fed-metadata-edugain.xml   # eduGAIN metadata: approved entities with eduGAIN enabled
 │       └── fed-metadata-beta.xml      # Beta metadata: entities pending approval (status = INIT or APPROVING)
 └── private/                           # Protected files (with access controlled)
