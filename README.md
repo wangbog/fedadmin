@@ -32,20 +32,6 @@ Based on this practical experience, we decided to share our knowledge and tools 
 
 See [eduGAIN: Join As Federation](https://technical.edugain.org/joining_checklist) for a practical checklist before joining eduGAIN.
 
-### About opt-in/opt-out
-
-FedAdmin supports both opt-in and opt-out models for managing entities in the federation:
-
-**Opt-In**: Each Service Provider (SP) and Identity Provider (IdP) must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
-
-**Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
-
-See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/spaces/eduGAIN/pages/121348068/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
-
-Successfully updated the README.md file by adding a new sentence to the "About opt-in/opt-out" section. The new sentence reads: "Additionally, FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity."
-
-FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity, this is the unique way we support both opt-in and opt-out.
-
 ### Primary Deliverables
 
 Administrators of NREN‑operated identity federations use this project to manage their federation’s Identity Providers (IdPs) and Service Providers (SPs). The primary deliverables are federation metadata files stored under `./app/storage/public/federation/` (the final host‑side path may vary depending on deployment configuration):
@@ -54,8 +40,19 @@ Administrators of NREN‑operated identity federations use this project to manag
 
 **fed-metadata.xml**: Production metadata containing all approved entities. Entities validated in the test environment are promoted here, and all production services operate based on this file.
 
+**fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined below, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
 
-**fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined above, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
+### About opt-in/opt-out
+
+FedAdmin supports both opt-in and opt-out models for managing entities in the federation:
+
+**Opt-In**: Each Service Provider (SP) and Identity Provider (IdP) must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
+
+**Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
+
+See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
+
+FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity, this is the unique way we support both opt-in and opt-out.
 
 ## 2. Project Overview
 
@@ -94,11 +91,11 @@ The system is organized into two main administrative modules with distinct roles
 
 ### Technology Stack
 
-- **Backend Framework**: Flask 3.1.3
-- **ORM**: Flask-SQLAlchemy 3.1.1
-- **Authentication**: Flask-Security-Too 5.7.1
-- **Admin Interface**: Flask-Admin[images] 2.0.2
-- **Metadata Aggregation**: pyFF 2.1.5
+- **Backend Framework**: Flask
+- **ORM**: Flask-SQLAlchemy
+- **Authentication**: Flask-Security-Too
+- **Admin Interface**: Flask-Admin[images]
+- **Metadata Aggregation**: pyFF
 
 ## 3. Setup Development Environment
 See [Setup Development Environment](docs/deployment/deployment_dev.md)
