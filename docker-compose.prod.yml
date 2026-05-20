@@ -1,4 +1,3 @@
-
 services:
   web:
     build:
@@ -10,6 +9,9 @@ services:
       - "5000:5000"
     env_file:
       - .env
+    environment:
+      # Set to your timezone, e.g., "Europe/London"
+      - TZ=Asia/Shanghai
     restart: unless-stopped
     volumes:
       - ./data/instance:/app/instance

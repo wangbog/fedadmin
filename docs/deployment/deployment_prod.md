@@ -13,11 +13,13 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
 
 ## Setup Steps
 
-1. **Prepare the host system** (Linux only)
+1. **Prepare the host system**
 
    **💡 Note:** We do not recommend or have tested hosting the container on platforms other than a Linux server for production.
 
-   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000, check if UID 5000 is already in use on the host server to avoid conflict.
+   **⚠️ Important:** The docker container runs as the `fedadmin` user with UID 5000. Create a fedadmin user with UID 5000 on the host system.
+
+   Check if UID 5000 is already in use on the host server to avoid conflict:
 
    ```bash
    getent passwd 5000
@@ -26,20 +28,20 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    If UID 5000 is already in use, change the Dockerfile.prod to use another UID:
    - `Dockerfile.prod`: `groupadd -g 5000` and `useradd -u 5000`
 
-   Create `fedadmin` group and user (if you're using UID other than 5000, change it accordingly)
+   Create `fedadmin` group and user (if you're using UID other than 5000, change it accordingly):
 
    ```bash
    sudo groupadd -g 5000 fedadmin
    sudo useradd -u 5000 -g fedadmin -m -s /bin/bash fedadmin
    ```
 
-   Add user `fedadmin` to `docker` group, so it can build and run docker images
+   Add user `fedadmin` to `docker` group, so it can build and run docker images:
 
    ```bash
    sudo usermod -aG docker fedadmin
    ```
 
-   Create the work dir, copy or clone project files
+   Create the work dir, copy or clone project files:
 
    ```bash
    sudo mkdir -p /data/fedadmin
@@ -50,18 +52,18 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    sudo chown -R fedadmin:fedadmin /data
    ```
 
-   Switch to user `fedadmin`, following steps are all under the `fedadmin` user
+   Switch to user `fedadmin`, following steps are all under the `fedadmin` user:
 
    ```bash
    su fedadmin
    cd /data/fedadmin
    ```
 
-   Create bind mount directories and set ownership
+   Create bind mount directories and set ownership:
 
    ```bash
    mkdir -p data/instance data/storage data/logs
-   sudo chmod 750 -R data
+   chmod 750 -R data
    ```
 
 2. **Prepare configuration file**
@@ -78,6 +80,8 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    - Any changes in this configuration file needs a container restart.
 
 3. **Build and start the application**
+
+   **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.prod.yml`, so the application logs will use the correct local time.
 
    ```bash
    # Build production image
@@ -108,7 +112,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
 
    **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-   Check the files are generate:
+   Check the files are generated:
 
    ```bash
    # Enter the container
@@ -159,7 +163,7 @@ Check the cron log file to verify task execution:
 ## Daily Operations
 
 - **View application logs**:
-  1.  Using Docker logs: On your host machine, run `docker-compose -f docker-compose.prod.yml logs -f web`. This shows the Gunicorn and Flask application's stdout/stderr output.
+  1.  Using Docker logs: On your host machine, run `docker compose -f docker-compose.prod.yml logs -f web`. This shows the Gunicorn and Flask application's stdout/stderr output.
   2.  Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container. You can view it inside the container with `docker exec fedadmin sh -c "tail -f /var/log/fedadmin/app.log"`, or directly on the host at `./data/logs/app.log`.
 - **Monitor container status**: `docker ps -a | grep fedadmin`
 - **Stop all containers**: `docker stop fedadmin`

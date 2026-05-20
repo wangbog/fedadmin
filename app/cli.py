@@ -7,17 +7,21 @@ from flask import current_app
 from flask.cli import with_appcontext
 from flask_security.utils import hash_password
 from .extensions import db, security
+from app.services.metadata import MetadataService
 from .models.federation import Federation
 from .models.organization import Organization
 from .models.organization_type import OrganizationType
 from .models.entity_status import EntityStatus
 from .models.role import Role
 from app.utils.role_helpers import assign_user_roles
+from app.utils.logging_helpers import logger
 
 
 @click.command("init-certs")
 @with_appcontext
 def init_certs_command():
+    """Generate self-signed certificate for federation metadata signing."""
+
     private_storage = current_app.config.get("PRIVATE_STORAGE")
     if not private_storage:
         private_storage = os.path.join(current_app.root_path, "storage", "private")
@@ -65,6 +69,7 @@ def init_certs_command():
 @with_appcontext
 def init_db_command():
     """Insert default roles, federation configuration, and admin data if they don't exist."""
+
     actions_taken = []
 
     # Insert default roles if table is empty
@@ -117,7 +122,7 @@ def init_db_command():
         actions_taken.append("Created Federation Admin Organization")
 
         # Create federation admin user
-        password = generate_secure_password()
+        password = _generate_secure_password()
         user_datastore = security.datastore
         fed_admin_user = user_datastore.create_user(
             username="fedadmin",
@@ -169,32 +174,10 @@ def regenerate_metadata_command():
     This command should be called by system cron for scheduled tasks.
     It uses file locks to prevent concurrent execution.
     """
-    from app.services.metadata import MetadataService
-    from app.models.entity_status import EntityStatus
-    from app.utils.logging_helpers import logger
 
     try:
         logger.info("Starting scheduled metadata regeneration job")
-
-        # Generate beta metadata (for entities not yet ready)
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-            statuses=[
-                EntityStatus.INIT.value,
-                EntityStatus.APPROVING.value,
-            ],
-        )
-        # Generate main metadata (for ready entities)
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_OUTPUT",
-            statuses=[EntityStatus.READY.value],
-        )
-        # Generate eduGAIN metadata (for eduGAIN-enabled entities)
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-            statuses=[EntityStatus.READY.value],
-            edugain_only=True,
-        )
+        _regenerate_all_metadata()
         logger.info("Scheduled metadata regeneration job completed successfully")
         click.echo("Metadata regeneration completed successfully!")
     except Exception as e:
@@ -211,8 +194,6 @@ def check_edugain_updates_command():
     This command should be called by system cron for scheduled tasks.
     It uses file locks to prevent concurrent execution.
     """
-    from app.services.metadata import MetadataService
-    from app.utils.logging_helpers import logger
 
     try:
         logger.info("Starting scheduled eduGAIN metadata updates check job")
@@ -223,24 +204,7 @@ def check_edugain_updates_command():
             logger.info(
                 f"eduGAIN updates found ({stats['updated']} entities). Regenerating federation metadata."
             )
-            from app.models.entity_status import EntityStatus
-
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-                statuses=[
-                    EntityStatus.INIT.value,
-                    EntityStatus.APPROVING.value,
-                ],
-            )
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_OUTPUT",
-                statuses=[EntityStatus.READY.value],
-            )
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-                statuses=[EntityStatus.READY.value],
-                edugain_only=True,
-            )
+            _regenerate_all_metadata()
         logger.info(f"Scheduled eduGAIN metadata updates check job completed: {stats}")
         click.echo(f"eduGAIN update check completed: {stats}")
     except Exception as e:
@@ -251,7 +215,41 @@ def check_edugain_updates_command():
         raise
 
 
-def generate_secure_password(length=16):
+def _regenerate_all_metadata():
+    """Helper function to regenerate all three federation metadata files.
+
+    This function generates:
+    - fed-metadata-beta.xml: For INIT and APPROVING status entities
+    - fed-metadata.xml: For READY status entities
+    - fed-metadata-edugain.xml: For READY status entities with eduGAIN participation enabled
+    """
+
+    logger.info("Regenerating all federation metadata files")
+
+    # Generate beta metadata (for entities not yet ready)
+    MetadataService.safe_regenerate(
+        output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+        statuses=[
+            EntityStatus.INIT.value,
+            EntityStatus.APPROVING.value,
+        ],
+    )
+    # Generate main metadata (for ready entities)
+    MetadataService.safe_regenerate(
+        output_path_key="FEDERATION_METADATA_OUTPUT",
+        statuses=[EntityStatus.READY.value],
+    )
+    # Generate eduGAIN metadata (for eduGAIN-enabled entities)
+    MetadataService.safe_regenerate(
+        output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+        statuses=[EntityStatus.READY.value],
+        edugain_only=True,
+    )
+
+    logger.info("All federation metadata files regenerated successfully")
+
+
+def _generate_secure_password(length=16):
     """Generate a secure random password."""
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     password = "".join(secrets.choice(alphabet) for _ in range(length))

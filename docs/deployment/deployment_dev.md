@@ -14,17 +14,9 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
 1. **Prepare the host system**
 
-   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, you should pay attention to the user/group management below on these platforms.
+   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, but you should pay attention to the user/group management on these platforms.
 
-   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000. Docker Desktop on Windows does not require this step as it handles permissions automatically. If you're hosting on Linux/macOS, refer to below to check if UID 5000 is already in use on the host server to avoid conflict.
-
-   ```bash
-   getent passwd 5000
-   ```
-
-   If UID 5000 is already in use, change the Dockerfile to use another UID:
-   - `Dockerfile`: `groupadd -g 5000` and `useradd -u 5000`
-   - `.devcontainer/devcontainer.json` (line 27 and 28): `"uid": "5000"` and `"gid": "5000"`
+   **⚠️ Important:** The docker container runs as the `fedadmin` user with UID 5000. Docker Desktop on Windows does not require any special steps, as it handles permissions automatically. If you are hosting on Linux/macOS, you need to ensure that a fedadmin user with UID 5000 has been created on the host system beforehand. Please refer to [1. Prepare the host system](deployment_prod.md#1-prepare-the-host-system).
 
 2. **Prepare configuration file**
 
@@ -47,7 +39,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
 4. **Initialize federation metadata certificates and database**
 
-   After the container is ready, open the integrated terminal and run:
+   After the container is ready, open the integrated terminal (already inside the container) and run:
 
    ```bash
    # Generate signing certificates for SAML metadata
@@ -66,7 +58,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
    **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-   Check the files are generated:
+   Check the files are generated in the integrated terminal (already inside the container):
 
    ```bash
    # Check the generated files
@@ -88,7 +80,7 @@ After completing the setup steps, verify everything is working:
 
 See [Scheduled Tasks](scheduled_tasks.md) to understand the scheduled tasks.
 
-Since the host Windows 11 development environments don't have crontab, you can execute commands in the integrated terminal (which is inside the container) on-demand:
+Since the host Windows 11 development environments don't have crontab, you can execute commands in the integrated terminal (already inside the container) on-demand:
 
    ```bash
    # Regenerate metadata
