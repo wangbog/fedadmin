@@ -129,6 +129,33 @@ After completing the setup steps, verify everything is working:
 1. Visit http://hostip:5000/
 2. Try logging in with the federation admin account: `fed@example.com` / `the generated password`
 
+## Scheduled Tasks
+
+See [Scheduled Tasks](scheduled_tasks.md) to understand the scheduled tasks.
+
+Configure crontab as the `fedadmin` user on the host server to run these commands automatically:
+
+   ```bash
+   su fedadmin
+   mkdir -p /data/fedadmin/data/host_logs
+
+   # Edit crontab
+   crontab -e
+
+   # add crontab rules
+   30 2 * * * /usr/bin/docker exec fedadmin flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   15 * * * * /usr/bin/docker exec fedadmin flask check-edugain-updates >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   ```
+
+**Note:** Adjust the time and log path according to your deployment configuration.
+
+Check the cron log file to verify task execution:
+
+   ```bash
+   # View cron log on host server
+   cat data/host_logs/cron.log
+   ```
+
 ## Daily Operations
 
 - **View application logs**:
@@ -175,10 +202,3 @@ If the container fails to start, follow these steps:
    - HTTPS Certificate Management.
    - Security Settings.
    - Public Path Mapping: The container directory `/app/app/storage/public/` is mapped to the host path `./data/storage/public/`. This directory contains federation related public metadata files (e.g., `fed-metadata.xml`, `fed-metadata-edugain.xml`, `fed-metadata-beta.xml` under `./data/storage/public/federation/`). A reverse proxy is recommended to expose these metadata files publicly.
-
-## Scheduled Tasks
-
-TODO
-
-- Regenerate Metadata Job
-- Check eduGAIN Updates Job

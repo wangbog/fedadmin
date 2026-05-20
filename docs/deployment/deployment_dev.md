@@ -84,6 +84,20 @@ After completing the setup steps, verify everything is working:
 1. Visit http://127.0.0.1:5000/
 2. Try logging in with the federation admin account: `fed@example.com` / `the generated password`
 
+## Scheduled Tasks
+
+See [Scheduled Tasks](scheduled_tasks.md) to understand the scheduled tasks.
+
+Since the host Windows 11 development environments don't have crontab, you can execute commands in the integrated terminal (which is inside the container) on-demand:
+
+   ```bash
+   # Regenerate metadata
+   flask regenerate-metadata
+
+   # Check eduGAIN updates
+   flask check-edugain-updates
+   ```
+
 ## Daily Development
 
 - **Edit code**: Modify files in VS Code, Flask auto-reloads automatically (FLASK_DEBUG=1)
@@ -118,10 +132,3 @@ If the container fails to start, follow these steps:
 
 2. **Reset and start over**
    - Press `F1` → "Dev Containers: Rebuild Container" to rebuild and restart
-
-## Scheduled Tasks
-
-TODO
-
-- Regenerate Metadata Job
-- Check eduGAIN Updates Job

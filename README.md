@@ -115,6 +115,9 @@ See [Storage](docs/reference/storage.md)
 ### SAML Metadata Processing
 See [SAML Metadata Processing](docs/reference/metadata_processing.md)
 
+### Scheduled Tasks
+See [Scheduled Tasks](docs/deployment/scheduled_tasks.md)
+
 ## 7. Backlog and known issues
 
 ### Backlog
