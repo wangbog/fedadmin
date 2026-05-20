@@ -217,7 +217,7 @@ def check_edugain_updates_command():
     try:
         logger.info("Starting scheduled eduGAIN metadata updates check job")
         # Check for eduGAIN updates using SHA1 comparison and get statistics
-        stats = MetadataService.check_edugain_updates(app)
+        stats = MetadataService.check_edugain_updates(current_app)
         # Regenerate federation metadata if any updates were made
         if stats["updated"] > 0:
             logger.info(
