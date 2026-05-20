@@ -171,39 +171,32 @@ def regenerate_metadata_command():
     """
     from app.services.metadata import MetadataService
     from app.models.entity_status import EntityStatus
-    from app import create_app
     from app.utils.logging_helpers import logger
 
-    app = create_app()
-
     try:
-        with app.app_context():
-            logger.info("Starting scheduled metadata regeneration job")
+        logger.info("Starting scheduled metadata regeneration job")
 
-            # Generate beta metadata (for entities not yet ready)
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-                statuses=[
-                    EntityStatus.INIT.value,
-                    EntityStatus.APPROVING.value,
-                ],
-            )
-
-            # Generate main metadata (for ready entities)
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_OUTPUT",
-                statuses=[EntityStatus.READY.value],
-            )
-
-            # Generate eduGAIN metadata (for eduGAIN-enabled entities)
-            MetadataService.safe_regenerate(
-                output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-                statuses=[EntityStatus.READY.value],
-                edugain_only=True,
-            )
-
-            logger.info("Scheduled metadata regeneration job completed successfully")
-            click.echo("Metadata regeneration completed successfully!")
+        # Generate beta metadata (for entities not yet ready)
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+            statuses=[
+                EntityStatus.INIT.value,
+                EntityStatus.APPROVING.value,
+            ],
+        )
+        # Generate main metadata (for ready entities)
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_OUTPUT",
+            statuses=[EntityStatus.READY.value],
+        )
+        # Generate eduGAIN metadata (for eduGAIN-enabled entities)
+        MetadataService.safe_regenerate(
+            output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+            statuses=[EntityStatus.READY.value],
+            edugain_only=True,
+        )
+        logger.info("Scheduled metadata regeneration job completed successfully")
+        click.echo("Metadata regeneration completed successfully!")
     except Exception as e:
         logger.error(f"Scheduled metadata regeneration job failed: {e}", exc_info=True)
         click.echo(f"Metadata regeneration failed: {e}", err=True)
@@ -219,46 +212,37 @@ def check_edugain_updates_command():
     It uses file locks to prevent concurrent execution.
     """
     from app.services.metadata import MetadataService
-    from app import create_app
     from app.utils.logging_helpers import logger
 
-    app = create_app()
-
     try:
-        with app.app_context():
-            logger.info("Starting scheduled eduGAIN metadata updates check job")
-
-            # Check for eduGAIN updates using SHA1 comparison and get statistics
-            stats = MetadataService.check_edugain_updates(app)
-
-            # Regenerate federation metadata if any updates were made
-            if stats["updated"] > 0:
-                logger.info(
-                    f"eduGAIN updates found ({stats['updated']} entities). Regenerating federation metadata."
-                )
-                from app.models.entity_status import EntityStatus
-
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-                    statuses=[
-                        EntityStatus.INIT.value,
-                        EntityStatus.APPROVING.value,
-                    ],
-                )
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_OUTPUT",
-                    statuses=[EntityStatus.READY.value],
-                )
-                MetadataService.safe_regenerate(
-                    output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-                    statuses=[EntityStatus.READY.value],
-                    edugain_only=True,
-                )
-
+        logger.info("Starting scheduled eduGAIN metadata updates check job")
+        # Check for eduGAIN updates using SHA1 comparison and get statistics
+        stats = MetadataService.check_edugain_updates(app)
+        # Regenerate federation metadata if any updates were made
+        if stats["updated"] > 0:
             logger.info(
-                f"Scheduled eduGAIN metadata updates check job completed: {stats}"
+                f"eduGAIN updates found ({stats['updated']} entities). Regenerating federation metadata."
             )
-            click.echo(f"eduGAIN update check completed: {stats}")
+            from app.models.entity_status import EntityStatus
+
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
+                statuses=[
+                    EntityStatus.INIT.value,
+                    EntityStatus.APPROVING.value,
+                ],
+            )
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_OUTPUT",
+                statuses=[EntityStatus.READY.value],
+            )
+            MetadataService.safe_regenerate(
+                output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
+                statuses=[EntityStatus.READY.value],
+                edugain_only=True,
+            )
+        logger.info(f"Scheduled eduGAIN metadata updates check job completed: {stats}")
+        click.echo(f"eduGAIN update check completed: {stats}")
     except Exception as e:
         logger.error(
             f"Scheduled eduGAIN metadata updates check job failed: {e}", exc_info=True

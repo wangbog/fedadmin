@@ -14,15 +14,15 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
 1. **Prepare the host system**
 
-   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, you should pay attenion with the user/group management below on these platforms.
+   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, you should pay attention to the user/group management below on these platforms.
 
-   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000. Docker Desktop on Windows do not need us to perform this step as it handles permissions automatically, if you're hosting on Linux/macOS, you may refer to below to check if UID 5000 is already in use on host server to avoid confliction.
+   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000. Docker Desktop on Windows does not require this step as it handles permissions automatically. If you're hosting on Linux/macOS, refer to below to check if UID 5000 is already in use on the host server to avoid conflict.
 
    ```bash
    getent passwd 5000
    ```
 
-   If UID 5000 is already in use, change our docker file to use another UID:
+   If UID 5000 is already in use, change the Dockerfile to use another UID:
    - `Dockerfile`: `groupadd -g 5000` and `useradd -u 5000`
    - `.devcontainer/devcontainer.json` (line 27 and 28): `"uid": "5000"` and `"gid": "5000"`
 
@@ -53,7 +53,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
    # Generate signing certificates for SAML metadata
    flask init-certs
 
-   # Create/update database tables using flask-migration
+   # Create/update database tables using Flask-Migrate
    flask db upgrade
 
    # Insert default data if tables are empty:
@@ -66,7 +66,7 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
    **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-   Check the files are generate:
+   Check the files are generated:
 
    ```bash
    # Check the generated files

@@ -15,15 +15,15 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
 
 1. **Prepare the host system** (Linux only)
 
-   **💡 Note:** We don't suggest, and never tested hosting the container on platforms other than a linux server for production.
+   **💡 Note:** We do not recommend or have tested hosting the container on platforms other than a Linux server for production.
 
-   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000, check if UID 5000 is already in use on host server to avoid confliction.
+   **⚠️ Important:** The docker container is running as `fedadmin` user with UID 5000, check if UID 5000 is already in use on the host server to avoid conflict.
 
    ```bash
    getent passwd 5000
    ```
 
-   If UID 5000 is already in use, change our docker file to use another UID:
+   If UID 5000 is already in use, change the Dockerfile.prod to use another UID:
    - `Dockerfile.prod`: `groupadd -g 5000` and `useradd -u 5000`
 
    Create `fedadmin` group and user (if you're using UID other than 5000, change it accordingly)
@@ -50,10 +50,10 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    sudo chown -R fedadmin:fedadmin /data
    ```
 
-   Switch to user `fedadmin`, following steps are all under `fedadmin` user
+   Switch to user `fedadmin`, following steps are all under the `fedadmin` user
 
    ```bash
-   su www
+   su fedadmin
    cd /data/fedadmin
    ```
 
@@ -95,7 +95,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    # Generate signing certificates for SAML metadata
    docker exec fedadmin flask init-certs
 
-   # Create/update database tables using flask-migration
+   # Create/update database tables using Flask-Migrate
    docker exec fedadmin flask db upgrade
 
    # Insert default data if tables are empty:
@@ -111,7 +111,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    Check the files are generate:
 
    ```bash
-   # Enter the docker 
+   # Enter the container
    docker exec -it fedadmin /bin/bash
    
    # Check the generated files

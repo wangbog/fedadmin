@@ -21,7 +21,7 @@ We are the CARSI team, which manages China's NREN Identity Federation.
 
 **Who**: Federation administrators who are responsible for managing their NREN's identity federation.
 
-**When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs/SPs.
+**When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs and SPs.
 
 **Why**: 
 - This management concept and workflow have been successfully used in CARSI's actual projects for many years
