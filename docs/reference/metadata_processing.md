@@ -16,8 +16,8 @@ When an IdP or SP metadata file is uploaded, the system performs the following v
    - Validate root element is `EntityDescriptor`
 
 3. **XSD Schema Validation**
-   - Validate against [SAML 2.0 Metadata Schema](https://www.oasis-open.org/committees/download.php/35391/sstc-saml-metadata-errata-2.0-wd-04-diff.pdf)
-   - Validate against [Shibboleth Metadata Schema](https://wiki.shibboleth.net/confluence/display/SHIB2/NativeSPIdPConfiguration) (if applicable)
+   - Validate against [SAML 2.0 Metadata Schema](https://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd)
+   - Validate against [Shibboleth Metadata Schema](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt) (if applicable)
    - Additional schemas: XML Signature, XML Encryption
 
 4. **SSO Descriptor Validation**
@@ -39,34 +39,34 @@ When an IdP or SP metadata file is uploaded, the system performs the following v
 
 After validation, the system transforms the uploaded metadata by adding federation-specific extensions:
 
-1. **Registration Information** ([mdrpi:RegistrationInfo](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-rpi/v1.0/sstc-saml-metadata-rpi-v1.0.html))
+1. **Registration Information** ([mdrpi:RegistrationInfo](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf))
    - Registration authority (from federation configuration)
    - Registration instant (current timestamp)
    - Registration policy URL(s)
 
-2. **UI Information** ([mdui:UIInfo](https://docs.oasis-open.org/security/SAML/Post2.0/sstc-saml-metadata-ui/v1.0/cos01/sstc-saml-metadata-ui-v1.0.html))
+2. **UI Information** ([mdui:UIInfo](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf))
    - Display name (from entity name)
    - Description (from entity description)
    - Logo URL (from stored logo file)
    - Information URL (SP only)
    - Privacy Statement URL (SP only)
 
-3. **Entity Attributes** ([mdattr:EntityAttributes](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-errata-2.0-wd-04-diff.pdf))
+3. **Entity Attributes** ([mdattr:EntityAttributes](https://docs.oasis-open.org/security/saml/Post2.0/sstc-metadata-attr.pdf))
    - [REFEDS Research & Scholarship](https://refeds.org/category/research-and-scholarship) (R&S) category
    - [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct) (CoCo) - SP only
    - [REFEDS Sirtfi Framework](https://refeds.org/sirtfi) (Security Incident Response Trust Framework for Federated identity)
 
-4. **Organization Information** ([md:Organization](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-errata-2.0-wd-04-diff.pdf))
+4. **Organization Information** ([md:Organization](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf))
    - Organization name
    - Organization URL
    - Organization display name
 
-5. **Contact Persons** ([md:ContactPerson](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-errata-2.0-wd-04-diff.pdf))
+5. **Contact Persons** ([md:ContactPerson](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf))
    - Technical contact (name and email)
    - Security contact (for Sirtfi-compliant entities)
 
 6. **Scope Element** (IdP only)
-   - Ensure `shibmd:Scope` is present and matches the validated scope
+   - Ensure `shibmd:Scope` is present and matches the validated scope ([shibmd:Scope](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt))
 
 The transformed metadata is saved as `{original-filename}-transformed.xml`.
 

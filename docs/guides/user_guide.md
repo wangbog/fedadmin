@@ -33,8 +33,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
   - Registration Authority
   - Registration Policy URL
   - Publisher information
-- This information will be used when generating federation metadata files
-  - Reference: [SAML V2.0 Metadata Interoperability Profile](https://docs.oasis-open.org/security/SAML/Post2.0/sstc-saml-metadata-iop/v1.0/sstc-saml-metadata-iop-v1.0.html)
+- This information will be used when generating federation metadata files (`mdrpi`)
+  - Reference: [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf)
 - All federation administrators should ensure these details are accurate and complete before proceeding with entity registration
 
 ## Member Organizations and Users Management
@@ -78,8 +78,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
   - Description
   - URL
   - Display name (if applicable)
-- This information will be used when generating federation metadata files
-  - Reference: [SAML V2.0 Metadata Interoperability Profile](https://docs.oasis-open.org/security/SAML/Post2.0/sstc-saml-metadata-iop/v1.0/sstc-saml-metadata-iop-v1.0.html)
+- This information will be used when generating federation metadata files (`md:Organization`)
+  - Reference: [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf)
 - All member administrators should ensure these details are accurate and complete before proceeding with entity registration
 
 ### 4.3 Manage Organization Users

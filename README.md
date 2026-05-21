@@ -131,15 +131,18 @@ This project references the following open standards and specifications:
 
 | Specification | Description |
 |---------------|-------------|
-| [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf) | Core SAML 2.0 metadata specification |
+| [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf) | Core SAML 2.0 metadata specification (`md:`) |
+| [SAML V2.0 Core Assertion & Protocol](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf) | SAML assertions, attributes and protocol messages (`saml:`) |
 | [SAML V2.0 Metadata Extension for Entity Attributes](https://docs.oasis-open.org/security/saml/Post2.0/sstc-metadata-attr.pdf) | `mdattr:EntityAttributes` extension |
-| [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf) | `mdrpi` extensions |
-| [SAML V2.0 Metadata Extensions for Login and Discovery User Interface](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf) | `mdui`  extensions |
-| [SAML 2.0 Metadata Extensions for Shibboleth](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt) | `shibmd:Scope` and `shibmd:KeyAuthority` (not used in this project) extensions |
-| [REFEDS Security Contact Metadata Extension](http://refeds.org/metadata) | `remd:contactType` extension |
-| [REFEDS Sirtfi Framework](https://refeds.org/sirtfi/) | Security Incident Response Trust Framework for Federated identity |
-| [REFEDS Research & Scholarship](https://refeds.org/category/research-and-scholarship/) | Entity category for research and scholarship collaboration |
-| [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct/) | Data protection and privacy guidelines for service providers |
+| [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf) | `mdrpi:` registration & publication metadata |
+| [SAML V2.0 Metadata Extensions for Login and Discovery User Interface](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf) | `mdui:` UI, logo and discovery hints |
+| [SAML V2.0 Metadata Extension for Algorithm Support](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-algsupport.pdf) | `alg:` signature/digest/encryption algorithms |
+| [Shibboleth Metadata Extensions](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt) | `shibmd:Scope` and `shibmd:KeyAuthority` (unused) |
+| [XML Digital Signature (XMLDSig)](http://www.w3.org/TR/xmldsig-core/) | `ds:` signature, digest and key information |
+| [REFEDS Security Contact Metadata Extension](http://refeds.org/metadata) | `remd:contactType` for security contacts |
+| [REFEDS Sirtfi Framework](https://refeds.org/sirtfi/) | Security Incident Response Trust Framework |
+| [REFEDS Research & Scholarship Category](https://refeds.org/category/research-and-scholarship/) | Research & Scholarship entity category for academic federations |
+| [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct/) | Data protection and privacy code of conduct |
 
 ## 9. Glossary
 See [Glossary](docs/reference/glossary.md)
