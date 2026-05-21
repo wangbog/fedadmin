@@ -26,10 +26,42 @@ class BaseAdminView(ModelView):
     # Subclasses must define `required_roles` as a list or override `is_accessible`
     required_roles = []  # e.g., ['federation'] or ['full_member', 'sp_member']
 
+    column_labels = {
+        "organization_id": "Organization",
+        "organization.organization_name": "Organization Name",
+        "contact_technical_name": "Technical Contact Name",
+        "contact_technical_email": "Technical Contact Email",
+        "security_contact_name": "Security Contact Name",
+        "security_contact_email": "Security Contact Email",
+        "sirtfi_enabled": "Sirtfi Compliant",
+        "rs_enabled": "Research & Scholarship Category",
+        "coco_enabled": "Code of Conduct Compliant",
+        "information_url": "Information URL",
+        "privacy_statement_url": "Privacy Statement URL",
+        "download_metadata": "Metadata File",
+        "idp_id": "IdP ID",
+        "idp_status": "Status",
+        "idp_name": "IdP Name",
+        "idp_edugain": "IdP eduGAIN Status",
+        "idp_description": "IdP Description",
+        "idp_entityid": "IdP Entity ID",
+        "idp_scope": "IdP Scope",
+        "idp_logo": "IdP Logo",
+        "idp_metadata_file": "Metadata File",
+        "sp_id": "SP ID",
+        "sp_status": "Status",
+        "sp_name": "SP Name",
+        "sp_edugain": "SP eduGAIN Status",
+        "sp_description": "SP Description",
+        "sp_entityid": "SP Entity ID",
+        "sp_logo": "SP Logo",
+        "sp_metadata_file": "Metadata File",
+    }
+
     # Subclasses can override this dictionary to provide field descriptions
     column_descriptions = {
         # common fields
-        "download_metadata": "Download the metadata file.",
+        "download_metadata": "The metadata file.",
         "contact_technical_name": (
             "Name of the technical contact. Required. See: "
             '<a href="https://docs.oasis-open.org/security/saml/v2.0/'

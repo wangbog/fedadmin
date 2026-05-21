@@ -109,47 +109,14 @@ class MemberIdpModelView(MemberBaseView):
         "idp_metadata_file": FileUploadField,
     }
     form_args = {
-        "idp_name": {
-            "label": "IdP Name",
-        },
         "idp_edugain": {
-            "label": "IdP eduGAIN Status",
             "choices": [(e.value, e.name) for e in EdugainStatus],
             "coerce": int,
         },
-        "idp_description": {
-            "label": "IdP Description",
-        },
-        "idp_entityid": {
-            "label": "IdP Entity ID",
-        },
         "idp_scope": {
-            "label": "IdP Scope",
             "render_kw": {"readonly": True},
         },
-        "idp_logo": {
-            "label": "IdP Logo",
-        },
-        "contact_technical_name": {
-            "label": "Technical Contact Name",
-        },
-        "contact_technical_email": {
-            "label": "Technical Contact Email",
-        },
-        "security_contact_name": {
-            "label": "Security Contact Name",
-        },
-        "security_contact_email": {
-            "label": "Security Contact Email",
-        },
-        "sirtfi_enabled": {
-            "label": "Sirtfi Compliant",
-        },
-        "rs_enabled": {
-            "label": "Research & Scholarship Category",
-        },
         "idp_metadata_file": {
-            "label": "Metadata File",
             "base_path": current_app.config["STORAGE_ROOT"],
             "relative_path": "",
             "namegen": idp_metadata_namegen,

@@ -111,52 +111,11 @@ class MemberSpModelView(MemberBaseView):
         "sp_metadata_file": FileUploadField,
     }
     form_args = {
-        "sp_name": {
-            "label": "SP Name",
-        },
         "sp_edugain": {
-            "label": "SP eduGAIN Status",
             "choices": [(e.value, e.name) for e in EdugainStatus],
             "coerce": int,
         },
-        "sp_description": {
-            "label": "SP Description",
-        },
-        "sp_entityid": {
-            "label": "SP Entity ID",
-        },
-        "sp_logo": {
-            "label": "SP Logo",
-        },
-        "contact_technical_name": {
-            "label": "Technical Contact Name",
-        },
-        "contact_technical_email": {
-            "label": "Technical Contact Email",
-        },
-        "security_contact_name": {
-            "label": "Security Contact Name",
-        },
-        "security_contact_email": {
-            "label": "Security Contact Email",
-        },
-        "sirtfi_enabled": {
-            "label": "Sirtfi Compliant",
-        },
-        "coco_enabled": {
-            "label": "Code of Conduct Compliant",
-        },
-        "rs_enabled": {
-            "label": "Research & Scholarship Category",
-        },
-        "information_url": {
-            "label": "Information URL",
-        },
-        "privacy_statement_url": {
-            "label": "Privacy Statement URL",
-        },
         "sp_metadata_file": {
-            "label": "Metadata File",
             "base_path": current_app.config["STORAGE_ROOT"],
             "relative_path": "",
             "namegen": sp_metadata_namegen,

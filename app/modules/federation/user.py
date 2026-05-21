@@ -27,9 +27,6 @@ class FederationUserModelView(FederationBaseView):
         "actions",
     ]
     column_filters = ["organization.organization_name", "username", "email"]
-    column_labels = {
-        "organization.organization_name": "Organization Name",
-    }
     column_sortable_list = [
         ("organization_name", "organization.organization_name"),
         "username",

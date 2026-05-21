@@ -32,9 +32,6 @@ class FederationIdpModelView(FederationBaseView):
         "idp_status": [(e.value, e.name) for e in EntityStatus],
         "idp_edugain": [(e.value, e.name) for e in EdugainStatus],
     }
-    column_labels = {
-        "organization.organization_name": "Organization Name",
-    }
     column_sortable_list = [
         ("organization_name", "organization.organization_name"),
         "idp_status",

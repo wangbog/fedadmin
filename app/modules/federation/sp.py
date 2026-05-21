@@ -32,9 +32,6 @@ class FederationSpModelView(FederationBaseView):
         "sp_status": [(e.value, e.name) for e in EntityStatus],
         "sp_edugain": [(e.value, e.name) for e in EdugainStatus],
     }
-    column_labels = {
-        "organization.organization_name": "Organization Name",
-    }
     column_sortable_list = [
         ("organization_name", "organization.organization_name"),
         "sp_status",
