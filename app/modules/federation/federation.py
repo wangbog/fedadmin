@@ -26,9 +26,24 @@ class FederationFederationModelView(FederationBaseView):
     column_descriptions = {
         **FederationBaseView.column_descriptions,
         **{
-            "registration_authority": 'Registration Authority identifier for mdrpi:RegistrationInfo. <a href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-rpi/v1.0/sstc-saml-metadata-rpi-v1.0.html" target="_blank">MDRPI specification</a>',
-            "registration_policy_url": "URL pointing to the federation's registration practices statement. MUST be a valid URL.",
-            "publisher": "Human-readable name of the federation that publishes this metadata.",
+            "registration_authority": (
+                "Registration Authority identifier for mdrpi:RegistrationInfo. "
+                '<a href="https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/'
+                'saml-metadata-rpi-v1.0.pdf" '
+                'target="_blank">&lt;mdrpi:RegistrationInfo&gt;</a>'
+            ),
+            "registration_policy_url": (
+                "URL pointing to the federation's registration practices statement. See: "
+                '<a href="https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/'
+                'saml-metadata-rpi-v1.0.pdf" '
+                'target="_blank">&lt;mdrpi:RegistrationPolicy&gt;</a>'
+            ),
+            "publisher": (
+                "Human-readable name of the federation that publishes this metadata. See: "
+                '<a href="https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/'
+                'saml-metadata-rpi-v1.0.pdf" '
+                'target="_blank">&lt;mdrpi:PublicationInfo&gt;</a>'
+            ),
         },
     }
     form_columns = ["registration_authority", "registration_policy_url", "publisher"]
@@ -87,13 +102,16 @@ class FederationFederationModelView(FederationBaseView):
             return
         else:
             logger.info(
-                f"[{client_ip}] [UPDATE] - User {current_user.id}({current_user.email}) updated federation configuration"
+                f"[{client_ip}] [UPDATE] - User {current_user.id}("
+                f"{current_user.email}) updated federation configuration"
             )
 
         # re-transform all entities, and regenerate metadata
         self._retransform_all_entities()
 
         flash(
-            "Federation registration configuration has been updated. All entities will automatically re-transform in the background. Federation metadata will be regenerated automatically after completion.",
+            "Federation registration configuration has been updated. "
+            "All entities will automatically re-transform in the background. "
+            "Federation metadata will be regenerated automatically after completion.",
             "info",
         )

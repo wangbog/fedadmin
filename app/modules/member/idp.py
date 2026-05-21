@@ -86,7 +86,7 @@ class MemberIdpModelView(MemberBaseView):
     column_descriptions = {
         **BaseAdminView.column_descriptions,
         **{
-            "rs_enabled": 'Enable if the IdP supports R&S entity category (i.e., will release attributes to R&S SPs). <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S specification</a>',
+            "rs_enabled": 'Enable if the IdP supports R&S entity category (i.e., will release attributes to R&S SPs). See: <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S</a>',
         },
     }
     form_columns = [
@@ -109,10 +109,16 @@ class MemberIdpModelView(MemberBaseView):
         "idp_metadata_file": FileUploadField,
     }
     form_args = {
+        "idp_name": {
+            "label": "IdP Name",
+        },
         "idp_edugain": {
             "label": "IdP eduGAIN Status",
             "choices": [(e.value, e.name) for e in EdugainStatus],
             "coerce": int,
+        },
+        "idp_description": {
+            "label": "IdP Description",
         },
         "idp_entityid": {
             "label": "IdP Entity ID",
@@ -120,6 +126,9 @@ class MemberIdpModelView(MemberBaseView):
         "idp_scope": {
             "label": "IdP Scope",
             "render_kw": {"readonly": True},
+        },
+        "idp_logo": {
+            "label": "IdP Logo",
         },
         "contact_technical_name": {
             "label": "Technical Contact Name",

@@ -16,7 +16,7 @@ When an IdP or SP metadata file is uploaded, the system performs the following v
    - Validate root element is `EntityDescriptor`
 
 3. **XSD Schema Validation**
-   - Validate against [SAML 2.0 Metadata Schema](https://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd)
+   - Validate against [SAML V2.0 Metadata Schema](https://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd)
    - Validate against [Shibboleth Metadata Schema](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt) (if applicable)
    - Additional schemas: XML Signature, XML Encryption
 

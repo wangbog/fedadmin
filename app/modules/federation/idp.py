@@ -45,8 +45,8 @@ class FederationIdpModelView(FederationBaseView):
     column_details_list = [
         "idp_id",
         "organization_name",
-        "idp_status",
         "idp_name",
+        "idp_status",
         "idp_description",
         "idp_scope",
         "idp_entityid",
@@ -67,9 +67,7 @@ class FederationIdpModelView(FederationBaseView):
         "idp_status": lambda v, c, m, p: v._format_enum(m.idp_status, EntityStatus),
         "idp_edugain": lambda v, c, m, p: v._format_enum(m.idp_edugain, EdugainStatus),
         "idp_logo": lambda v, c, m, p: (
-            Markup(
-                f'<img src="{url_for("main.public_storage", filename=m.idp_logo)}" style="max-height:50px;">'
-            )
+            Markup(f'<img src="{m.idp_logo}" style="max-height:50px;">')
             if m.idp_logo
             else ""
         ),
@@ -79,7 +77,7 @@ class FederationIdpModelView(FederationBaseView):
     column_descriptions = {
         **BaseAdminView.column_descriptions,
         **{
-            "rs_enabled": 'Enable if the IdP supports R&S entity category (i.e., will release attributes to R&S SPs). <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S specification</a>',
+            "rs_enabled": 'Enable if the IdP supports R&S entity category (i.e., will release attributes to R&S SPs). See: <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S</a>',
         },
     }
 
@@ -116,8 +114,7 @@ class FederationIdpModelView(FederationBaseView):
         if model.idp_status == EntityStatus.APPROVING.value:
             approve_url = self.get_url(".approve")
             csrf_token = generate_csrf()
-            actions.append(
-                f"""
+            actions.append(f"""
             <form class="icon" method="POST" action="{approve_url}">
                 <input name="id" type="hidden" value="{model.idp_id}">
                 <input name="url" type="hidden" value="{return_path}">
@@ -126,15 +123,13 @@ class FederationIdpModelView(FederationBaseView):
                     <span class="fa fa-check"></span>
                 </button>
             </form>
-            """
-            )
+            """)
 
         # Reject Button
         if model.idp_status == EntityStatus.APPROVING.value:
             reject_url = self.get_url(".reject")
             csrf_token = generate_csrf()
-            actions.append(
-                f"""
+            actions.append(f"""
             <form class="icon" method="POST" action="{reject_url}">
                 <input name="id" type="hidden" value="{model.idp_id}">
                 <input name="url" type="hidden" value="{return_path}">
@@ -143,8 +138,7 @@ class FederationIdpModelView(FederationBaseView):
                     <span class="fa fa-times"></span>
                 </button>
             </form>
-            """
-            )
+            """)
 
         return Markup(" ".join(actions))
 

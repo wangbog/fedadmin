@@ -32,52 +32,61 @@ class BaseAdminView(ModelView):
         "download_metadata": "Download the metadata file.",
         "contact_technical_name": (
             "Name of the technical contact. Required. See: "
-            '<a href="https://technical.edugain.org/documents" target="_blank">'
-            "eduGAIN SAML Profile</a>"
+            '<a href="https://docs.oasis-open.org/security/saml/v2.0/'
+            'saml-metadata-2.0-os.pdf" target="_blank">'
+            "&lt;md:ContactPerson&gt;</a>"
         ),
         "contact_technical_email": (
             "Email address of the technical contact. Required. See: "
-            '<a href="https://technical.edugain.org/documents" target="_blank">'
-            "eduGAIN SAML Profile</a>"
+            '<a href="https://docs.oasis-open.org/security/saml/v2.0/'
+            'saml-metadata-2.0-os.pdf" target="_blank">'
+            "&lt;md:ContactPerson&gt;</a>"
         ),
         "sirtfi_enabled": (
-            "Enable if the entity complies with REFEDS Sirtfi framework. "
+            "Enable if the entity complies with REFEDS Sirtfi framework. See: "
             '<a href="https://refeds.org/sirtfi" target="_blank">'
-            "Sirtfi specification</a>"
+            "Sirtfi</a>"
         ),
         "security_contact_name": "Name of the security contact (required if Sirtfi enabled).",
         "security_contact_email": "Email address of the security contact (required if Sirtfi enabled).",
         # idp specific fields
         "idp_entityid": "Entity ID of the IdP, extracted from the uploaded metadata.",
-        "idp_scope": "shibmd:Scope of the IdP, extracted from the uploaded metadata.",
+        "idp_scope": (
+            '<a href="https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt" '
+            'target="_blank">&lt;shibmd:Scope&gt;</a> '
+            "of the IdP, extracted from the uploaded metadata."
+        ),
         "idp_edugain": "Whether this IdP should be included in the eduGAIN metadata feed.",
         "idp_logo": (
-            "The logo image url for the IdP."
-            "It will be included in the metadata as mdui:Logo."
+            "The logo image url for the IdP. It will be included in the metadata as "
+            '<a href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf" '
+            'target="_blank">&lt;mdui:Logo&gt;</a>'
         ),
         "idp_metadata_file": "Upload the SAML metadata file of the IdP.",
         # sp specific fields
         "sp_entityid": "Entity ID of the SP, extracted from the uploaded metadata.",
         "sp_edugain": "Whether this SP should be included in the eduGAIN metadata feed.",
         "sp_logo": (
-            "The logo image url for the SP."
-            "It will be included in the metadata as mdui:Logo."
+            "The logo image url for the SP. It will be included in the metadata as "
+            '<a href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf" '
+            'target="_blank">&lt;mdui:Logo&gt;</a>'
         ),
         "sp_metadata_file": "Upload the SAML metadata file of the SP.",
         "coco_enabled": (
-            "Enable if the SP complies with REFEDS Code of Conduct (v2). "
+            "Enable if the SP complies with REFEDS Code of Conduct (v2). See: "
             '<a href="https://refeds.org/category/code-of-conduct" '
             'target="_blank">Code of Conduct v2</a>'
         ),
         "information_url": (
-            "URL of a page describing the service (recommended for R&S). "
+            "URL of a page describing the service (recommended for R&S). See: "
             '<a href="https://refeds.org/category/research-and-scholarship" '
-            'target="_blank">R&S specification</a>'
+            'target="_blank">R&S</a>'
         ),
         "privacy_statement_url": (
             "URL of the privacy statement (recommended). See: "
-            '<a href="https://technical.edugain.org/documents" '
-            'target="_blank">eduGAIN SAML Profile</a>'
+            '<a href="https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/'
+            'sstc-saml-metadata-ui-v1.0.pdf" '
+            'target="_blank">&lt;mdui:PrivacyStatementURL&gt;</a>'
         ),
     }
 

@@ -131,7 +131,7 @@ This project references the following open standards and specifications:
 
 | Specification | Description |
 |---------------|-------------|
-| [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf) | Core SAML 2.0 metadata specification (`md:`) |
+| [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf) | Core SAML V2.0 metadata specification (`md:`) |
 | [SAML V2.0 Core Assertion & Protocol](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf) | SAML assertions, attributes and protocol messages (`saml:`) |
 | [SAML V2.0 Metadata Extension for Entity Attributes](https://docs.oasis-open.org/security/saml/Post2.0/sstc-metadata-attr.pdf) | `mdattr:EntityAttributes` extension |
 | [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf) | `mdrpi:` registration & publication metadata |

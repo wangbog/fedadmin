@@ -86,7 +86,7 @@ class MemberSpModelView(MemberBaseView):
     column_descriptions = {
         **BaseAdminView.column_descriptions,
         **{
-            "rs_enabled": 'Enable if the SP meets the R&S entity category requirements. <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S specification</a>',
+            "rs_enabled": 'Enable if the SP meets the R&S entity category requirements. See: <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S</a>',
         },
     }
     form_columns = [
@@ -111,13 +111,22 @@ class MemberSpModelView(MemberBaseView):
         "sp_metadata_file": FileUploadField,
     }
     form_args = {
+        "sp_name": {
+            "label": "SP Name",
+        },
         "sp_edugain": {
             "label": "SP eduGAIN Status",
             "choices": [(e.value, e.name) for e in EdugainStatus],
             "coerce": int,
         },
+        "sp_description": {
+            "label": "SP Description",
+        },
         "sp_entityid": {
             "label": "SP Entity ID",
+        },
+        "sp_logo": {
+            "label": "SP Logo",
         },
         "contact_technical_name": {
             "label": "Technical Contact Name",

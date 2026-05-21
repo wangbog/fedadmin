@@ -45,8 +45,8 @@ class FederationSpModelView(FederationBaseView):
     column_details_list = [
         "sp_id",
         "organization_name",
-        "sp_status",
         "sp_name",
+        "sp_status",
         "sp_description",
         "sp_entityid",
         "sp_edugain",
@@ -69,9 +69,7 @@ class FederationSpModelView(FederationBaseView):
         "sp_status": lambda v, c, m, p: v._format_enum(m.sp_status, EntityStatus),
         "sp_edugain": lambda v, c, m, p: v._format_enum(m.sp_edugain, EdugainStatus),
         "sp_logo": lambda v, c, m, p: (
-            Markup(
-                f'<img src="{url_for("main.public_storage", filename=m.sp_logo)}" style="max-height:50px;">'
-            )
+            Markup(f'<img src="{m.sp_logo}" style="max-height:50px;">')
             if m.sp_logo
             else ""
         ),
@@ -81,7 +79,7 @@ class FederationSpModelView(FederationBaseView):
     column_descriptions = {
         **BaseAdminView.column_descriptions,
         **{
-            "rs_enabled": 'Enable if the SP meets the R&S entity category requirements. <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S specification</a>',
+            "rs_enabled": 'Enable if the SP meets the R&S entity category requirements. See: <a href="https://refeds.org/category/research-and-scholarship" target="_blank">R&S</a>',
         },
     }
 
@@ -118,8 +116,7 @@ class FederationSpModelView(FederationBaseView):
         if model.sp_status == EntityStatus.APPROVING.value:
             approve_url = self.get_url(".approve")
             csrf_token = generate_csrf()
-            actions.append(
-                f"""
+            actions.append(f"""
             <form class="icon" method="POST" action="{approve_url}">
                 <input name="id" type="hidden" value="{model.sp_id}">
                 <input name="url" type="hidden" value="{return_path}">
@@ -128,15 +125,13 @@ class FederationSpModelView(FederationBaseView):
                     <span class="fa fa-check"></span>
                 </button>
             </form>
-            """
-            )
+            """)
 
         # Reject Button
         if model.sp_status == EntityStatus.APPROVING.value:
             reject_url = self.get_url(".reject")
             csrf_token = generate_csrf()
-            actions.append(
-                f"""
+            actions.append(f"""
             <form class="icon" method="POST" action="{reject_url}">
                 <input name="id" type="hidden" value="{model.sp_id}">
                 <input name="url" type="hidden" value="{return_path}">
@@ -145,8 +140,7 @@ class FederationSpModelView(FederationBaseView):
                     <span class="fa fa-times"></span>
                 </button>
             </form>
-            """
-            )
+            """)
 
         return Markup(" ".join(actions))
 
