@@ -52,7 +52,7 @@ FedAdmin supports both opt-in and opt-out models for managing entities in the fe
 
 See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
 
-FedAdmin allows users to decide whether to include an IdP/SP in eduGAIN when adding each entity, this is the unique way we support both opt-in and opt-out.
+FedAdmin provides a unique approach by allowing administrators to decide whether to include each IdP/SP in eduGAIN during entity creation, thereby supporting both opt-in and opt-out models.
 
 ## 2. Project Overview
 
@@ -94,7 +94,7 @@ The system is organized into two main administrative modules with distinct roles
 - **Backend Framework**: Flask
 - **ORM**: Flask-SQLAlchemy
 - **Authentication**: Flask-Security-Too
-- **Admin Interface**: Flask-Admin[images]
+- **Admin Interface**: Flask-Admin
 - **Metadata Aggregation**: pyFF
 
 ## 3. Setup Development Environment
@@ -127,17 +127,19 @@ See [Known issues](docs/reference/issues.md)
 
 ## 8. Referenced Specifications
 
+This project references the following open standards and specifications:
+
 | Specification | Description |
 |---------------|-------------|
 | [SAML V2.0 Metadata](https://docs.oasis-open.org/security/saml/v2.0/saml-metadata-2.0-os.pdf) | Core SAML 2.0 metadata specification |
-| [SAML V2.0 Metadata Interoperability Profile](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-iop/v1.0/os/sstc-saml-metadata-iop-v1.0-os.html) | Interoperability guidelines for SAML metadata |
+| [SAML V2.0 Metadata Extension for Entity Attributes](https://docs.oasis-open.org/security/saml/Post2.0/sstc-metadata-attr.pdf) | `mdattr:EntityAttributes` extension |
+| [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf) | `mdrpi` extensions |
+| [SAML V2.0 Metadata Extensions for Login and Discovery User Interface](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/sstc-saml-metadata-ui-v1.0.pdf) | `mdui`  extensions |
+| [SAML 2.0 Metadata Extensions for Shibboleth](https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843888238/ShibMetaExt) | `shibmd:Scope` and `shibmd:KeyAuthority` (not used in this project) extensions |
+| [REFEDS Security Contact Metadata Extension](http://refeds.org/metadata) | `remd:contactType` extension |
 | [REFEDS Sirtfi Framework](https://refeds.org/sirtfi/) | Security Incident Response Trust Framework for Federated identity |
 | [REFEDS Research & Scholarship](https://refeds.org/category/research-and-scholarship/) | Entity category for research and scholarship collaboration |
 | [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct/) | Data protection and privacy guidelines for service providers |
-| [Shibboleth Metadata Profile](https://wiki.shibboleth.net/confluence/display/SHIB/Metadata+Profiles) | Shibboleth-specific metadata extensions |
-| [XML-Signature Syntax and Processing](https://www.w3.org/TR/xmldsig-core1/) | W3C standard for XML digital signatures |
-| [mdrpi:RegistrationInfo](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-rpi/v1.0/os/sstc-saml-metadata-rpi-v1.0-os.html) | SAML Metadata Registration Information |
-| [mdui:UIInfo](https://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-metadata-ui/v1.0/os/sstc-saml-metadata-ui-v1.0-os.html) | SAML Metadata User Interface Extension |
 
 ## 9. Glossary
 See [Glossary](docs/reference/glossary.md)
