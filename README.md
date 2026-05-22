@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Flask-3.1.3-green.svg" alt="Flask">
 </p>
 
-# FedAdmin
+# FedAdmin (NRENIdFedAdmin)
 
 A web based management tool for NREN identity federation administrators to operate federations, managing Identity Providers (IdPs) and Service Providers (SPs), and exchanging metadata with eduGAIN metadata service.
 
