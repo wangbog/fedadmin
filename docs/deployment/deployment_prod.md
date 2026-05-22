@@ -79,6 +79,19 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
    - Any changes in this configuration file needs a container restart.
 
+   **🔒 SESSION_COOKIE_SECURE Configuration:**
+
+   By default, `SESSION_COOKIE_SECURE = True` in production mode (see `config.py` class ProductionConfig). This setting ensures that session cookies are only transmitted over HTTPS connections, which is a critical security measure for production environments.
+
+   However, if you do not have a reverse proxy (like Nginx or Apache) configured with HTTPS a the initial stage, setting `SESSION_COOKIE_SECURE = True` will cause CSRF token vrification to fail during login. This happens because:
+   - When accessing the application via HTTP (e.g., `http://hostip:5000`), the browser would't send the session cookie
+   - Flask cannot verify the session, and the CSRF token validation fails
+
+   **Solution:**
+   - **Initial setup without reverse proxy**: Temporarily set `SESSION_COOKIE_SECURE = False` in the configuration
+   - **After configuring reverse proxy with HTTPS**: Set `SESSION_COOKIE_SECURE = True` to enable proper security, and rebuid the container
+   - You can modify `config.py` directly before container startup
+
 3. **Build and start the application**
 
    **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.prod.yml`, so the application logs will use the correct local time.
