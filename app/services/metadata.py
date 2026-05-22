@@ -1020,11 +1020,21 @@ class MetadataService:
 
     def _create_empty_metadata_xml(self) -> str:
         """Generate a placeholder empty metadata XML (containing minimal elements)."""
+        # Get registration authority from database
+        fed = Federation.query.first()
+        registration_authority = (
+            fed.registration_authority if fed else "https://www.example.com"
+        )
+
+        # Build placeholder URLs from registration authority
+        entity_id = f"{registration_authority}/placeholder"
+        acs_location = f"{registration_authority}/placeholder/acs"
+
         root = etree.Element(f"{{{self.NAMESPACES['md']}}}EntitiesDescriptor")
         root.attrib["ID"] = self._generate_id()
 
         entity = etree.SubElement(root, f"{{{self.NAMESPACES['md']}}}EntityDescriptor")
-        entity.attrib["entityID"] = "https://placeholder.fedadmin.example.com"
+        entity.attrib["entityID"] = entity_id
 
         sp_sso = etree.SubElement(entity, f"{{{self.NAMESPACES['md']}}}SPSSODescriptor")
         sp_sso.attrib["protocolSupportEnumeration"] = (
@@ -1035,7 +1045,7 @@ class MetadataService:
             sp_sso, f"{{{self.NAMESPACES['md']}}}AssertionConsumerService"
         )
         acs.attrib["Binding"] = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
-        acs.attrib["Location"] = "https://placeholder.fedadmin.example.com/acs"
+        acs.attrib["Location"] = acs_location
         acs.attrib["index"] = "0"
 
         return etree.tostring(

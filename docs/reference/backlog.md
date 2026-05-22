@@ -55,3 +55,54 @@ We initially implemented APScheduler (with MemoryJobStore) for async processing 
 2. **Production Environment Multi-process Constraints**
    
    APScheduler works in single-process development but fails in Gunicorn's multi-production setup. Alternative solutions (Redis, database-backed schedulers, Celery) all introduce additional infrastructure dependencies beyond our lightweight architecture.
+
+## 4. Placeholder Federation Metadata Requirement
+
+When the federation is empty (no entities), the system automatically generates a placeholder metadata XML containing a minimal EntityDescriptor with an SPSSODescriptor. This placeholder is required by the SAML v2.0 XSD schema and pyFF signing process.
+
+### XSD Schema Requirement
+
+According to [SAML V2.0 Metadata Schema](https://docs.oasis-open.org/security/saml/v2.0/saml-schema-metadata-2.0.xsd), the `EntitiesDescriptor` element requires at least one child element:
+
+```xml
+<element name="EntitiesDescriptor" type="md:EntitiesDescriptorType"/>
+<complexType name="EntitiesDescriptorType">
+   <sequence>
+      <element ref="ds:Signature" minOccurs="0"/>
+      <element ref="md:Extensions" minOccurs="0"/>
+      <choice minOccurs="1" maxOccurs="unbounded">
+         <element ref="md:EntityDescriptor"/>
+         <element ref="md:EntitiesDescriptor"/>
+      </choice>
+   </sequence>
+   <attribute name="validUntil" type="dateTime" use="optional"/>
+   <attribute name="cacheDuration" type="duration" use="optional"/>
+   <attribute name="ID" type="ID" use="optional"/>
+   <attribute name="Name" type="string" use="optional"/>
+</complexType>
+```
+
+The `minOccurs="1"` on the `<choice>` element means that at least one EntityDescriptor or EntitiesDescriptor must be present. This is enforced during XSD validation by pyFF when signing the federation metadata.
+
+### Placeholder Structure
+
+The placeholder metadata automatically generated when the federation is empty follows this structure:
+
+```xml
+<md:EntityDescriptor entityID="https://<registration_authority>/placeholder">
+    <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:AssertionConsumerService 
+            Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
+            Location="https://<registration_authority>/placeholder/acs" 
+            index="0"/>
+    </md:SPSSODescriptor>
+</md:EntityDescriptor>
+```
+
+### Implementation Location
+
+The placeholder is generated in `./app/services/metadata.py` in the `_create_empty_metadata_xml()` method.
+
+### Federation Metadata Publication Considerations
+
+Consider publication timing carefully to avoid publishing metadata that only contains placeholder entities. Federation metadata should be published only when actual entities are registered and available.
