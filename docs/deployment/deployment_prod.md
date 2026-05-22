@@ -188,14 +188,13 @@ Check the cron log file to verify task execution:
 
    ```bash
    # View cron log on host server
-   cat /data/fedadmin/data/host_logs/cron.log
+   cat ./data/host_logs/cron.log
    ```
 
-The cron log only contains cron command output. Application logs produced by these
-commands are written to the configured application log file:
+The cron log only contains cron command output. Application logs produced by these commands are written to the configured application log file:
 
    ```bash
-   tail -f /data/fedadmin/data/logs/app.log
+   tail -f ./data/logs/app.log
    ```
 
 ## Daily Operations
@@ -220,12 +219,10 @@ commands are written to the configured application log file:
   docker compose -f docker-compose.prod.yml logs -f web
 
   # Application file logs
-  tail -f data/logs/app.log
+  tail -f ./data/logs/app.log
   ```
 
-  `docker compose logs` shows the container stdout/stderr stream. Application logs
-  are written to `/var/log/fedadmin/app.log` inside the container, which is mounted
-  to `./data/logs/app.log` on the host.
+  `docker compose logs` shows the container stdout/stderr stream. Application logs are written to `/var/log/fedadmin/app.log` inside the container, which is mounted to `./data/logs/app.log` on the host.
 
 - **Stop the container**:
 
@@ -240,7 +237,6 @@ commands are written to the configured application log file:
    ```bash
    docker compose -f docker-compose.prod.yml ps
    docker compose -f docker-compose.prod.yml logs -f web
-   tail -f data/logs/app.log
    ```
 
 2. **Rebuild and restart**

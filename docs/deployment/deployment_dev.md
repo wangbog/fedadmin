@@ -128,10 +128,13 @@ For development, run scheduled commands manually when needed:
 - **View logs**:
 
   ```bash
+  # Container stdout/stderr logs
   docker compose logs -f web
+  # Application file logs
+  docker compose exec --user fedadmin web tail -f /var/log/fedadmin/app.log
   ```
 
-  Application logs are also written to `/var/log/fedadmin/app.log` inside the container.
+  `docker compose logs` shows the container stdout/stderr stream. Application logs are written to `/var/log/fedadmin/app.log` inside the container.
 
 - **Stop the container**:
 
