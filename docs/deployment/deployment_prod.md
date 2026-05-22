@@ -178,8 +178,8 @@ Configure crontab as the `fedadmin` user on the host server to run these command
    crontab -e
 
    # add crontab rules
-   30 2 * * * /usr/bin/docker exec fedadmin flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
-   15 * * * * /usr/bin/docker exec fedadmin flask check-edugain-updates >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   30 2 * * * cd /data/fedadmin && /usr/bin/docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   15 * * * * cd /data/fedadmin && /usr/bin/docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask check-edugain-updates >> /data/fedadmin/data/host_logs/cron.log 2>&1
    ```
 
 **Note:** Adjust the time and log path according to your deployment configuration.
@@ -188,7 +188,14 @@ Check the cron log file to verify task execution:
 
    ```bash
    # View cron log on host server
-   cat data/host_logs/cron.log
+   cat /data/fedadmin/data/host_logs/cron.log
+   ```
+
+The cron log only contains cron command output. Application logs produced by these
+commands are written to the configured application log file:
+
+   ```bash
+   tail -f /data/fedadmin/data/logs/app.log
    ```
 
 ## Daily Operations
@@ -209,10 +216,16 @@ Check the cron log file to verify task execution:
 - **View logs**:
 
   ```bash
+  # Container stdout/stderr logs
   docker compose -f docker-compose.prod.yml logs -f web
+
+  # Application file logs
+  tail -f data/logs/app.log
   ```
 
-  Application logs are also written to `/var/log/fedadmin/app.log` inside the container.
+  `docker compose logs` shows the container stdout/stderr stream. Application logs
+  are written to `/var/log/fedadmin/app.log` inside the container, which is mounted
+  to `./data/logs/app.log` on the host.
 
 - **Stop the container**:
 
@@ -227,6 +240,7 @@ Check the cron log file to verify task execution:
    ```bash
    docker compose -f docker-compose.prod.yml ps
    docker compose -f docker-compose.prod.yml logs -f web
+   tail -f data/logs/app.log
    ```
 
 2. **Rebuild and restart**
