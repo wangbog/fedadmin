@@ -1,6 +1,6 @@
 # Production Deployment
 
-Production environment uses a docker container (`Dockerfile.prod`) that uses Gunicorn as the WWSGI server with multiple workers.
+Production environment uses a docker container (`Dockerfile.prod`) that uses Gunicorn as the WSGI server with multiple workers.
 
 ## Important Information
 
@@ -66,7 +66,37 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    chmod 750 -R data
    ```
 
-2. **Prepare configuration file**
+2. **Configure Nginx Reverse Proxy**
+
+   For production deployment, it is **highly recommended** to deploy an Nginx reverse proxy with HTTPS in front of the Gunicorn service. It provides TLS termination, request buffering, security hardening and standard production deployment architecture.
+
+   If you enable Nginx HTTPS reverse proxy, you **must** add the following header. This passes the real HTTPS scheme to Flask/Gunicorn:
+
+   ```nginx
+   proxy_set_header X-Forwarded-Proto $scheme;
+   ```
+
+   This matches the built-in Gunicorn production configuration:
+
+   ```python
+   secure_scheme_headers = {"X-Forwarded-Proto": "https"}
+   forwarded_allow_ips = "*"
+   ```
+
+   The production configuration enables `SESSION_COOKIE_SECURE = True` by default (see `config.py ProductionConfig`), which restricts session cookies to HTTPS-only connections for security.
+
+   Please follow the rules below according to your actual deployment method:
+
+   - **With Nginx HTTPS reverse proxy (Production Standard)**
+     Keep default `SESSION_COOKIE_SECURE = True`.
+     Ensure the above `X-Forwarded-Proto` header is configured in Nginx, otherwise Flask cannot identify HTTPS connections correctly, resulting in login failure and 'The CSRF tokens do not match' errors.
+
+   - **Without Nginx Proxy (Direct HTTP access for temporary testing)**
+     You **must** manually set `SESSION_COOKIE_SECURE = False` in `config.py` before starting the container.
+     Browsers will refuse to carry secure cookies over plain HTTP, which will cause login failure and CSRF token invalidation.
+     This disables the HTTPS-only requirement for session cookies, allowing login and CSRF validation to work correctly over HTTP.
+
+3. **Prepare configuration file**
 
    ```bash
    # Create .env.prod file from template
@@ -79,20 +109,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
    - Any changes in this configuration file needs a container restart.
 
-   **🔒 SESSION_COOKIE_SECURE Configuration:**
-
-   By default, `SESSION_COOKIE_SECURE = True` in production mode (see `config.py` class ProductionConfig). This setting ensures that session cookies are only transmitted over HTTPS connections, which is a critical security measure for production environments.
-
-   However, if you do not have a reverse proxy (like Nginx or Apache) configured with HTTPS a the initial stage, setting `SESSION_COOKIE_SECURE = True` will cause CSRF token vrification to fail during login. This happens because:
-   - When accessing the application via HTTP (e.g., `http://hostip:5000`), the browser would't send the session cookie
-   - Flask cannot verify the session, and the CSRF token validation fails
-
-   **Solution:**
-   - **Initial setup without reverse proxy**: Temporarily set `SESSION_COOKIE_SECURE = False` in the configuration
-   - **After configuring reverse proxy with HTTPS**: Set `SESSION_COOKIE_SECURE = True` to enable proper security, and rebuid the container
-   - You can modify `config.py` directly before container startup
-
-3. **Build and start the application**
+4. **Build and start the application**
 
    **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.prod.yml`, so the application logs will use the correct local time.
 
@@ -104,7 +121,7 @@ Production environment uses a docker container (`Dockerfile.prod`) that uses Gun
    docker compose -f docker-compose.prod.yml up -d
    ```
 
-4. **Initialize federation metadata certificates and database**
+5. **Initialize federation metadata certificates and database**
 
    After the container is ready, run:
 
