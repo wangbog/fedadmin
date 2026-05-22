@@ -2,8 +2,14 @@ services:
   web:
     build: .
     image: fedadmin
+    container_name: fedadmin
     ports:
       - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      # Set to your timezone, e.g., "Europe/London"
+      - TZ=Asia/Shanghai
     volumes:
       - .:/app
     stdin_open: true

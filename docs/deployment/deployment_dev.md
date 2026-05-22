@@ -1,10 +1,12 @@
 # Setup Development Environment
 
-Development environment uses a docker container (`Dockerfile`) that includes development tools and uses Flask's built-in development server (`flask run`). We use Visual Studio Code with the Dev Container extension to manage the development environment, which minimizes issues caused by environment inconsistencies.
+The development environment uses Docker Compose `docker-compose.yml` with the development `Dockerfile`.
+
+The container includes the Linux system packages and Python dependencies required by FedAdmin, and runs Flask's built-in development server (`flask run`).
 
 ## Important Information
 
-- **Container User**: Runs as `fedadmin` user (UID/GID: 5000) for security
+- **Container User**: Runs as `fedadmin` user (UID/GID: 5000)
 - **Volume Mapping**: `.` (project root) → `/app` (entire project is bind mounted, and WORKDIR is /app)
   - Storage path: `./app/storage/` (host) ↔ `/app/app/storage/` (container)
   - Database path: `./instance/fedadmin-dev.db` (host) ↔ `/app/instance/fedadmin-dev.db` (container)
@@ -14,11 +16,12 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
 
 1. **Prepare the host system**
 
-   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code with Dev Containers should also work on Linux with GUI and MacOS, but you should pay attention to the user/group management on these platforms.
+   **💡 Note:** Our development environment is on Windows 11, this is the only host system we have tested. However, VS Code should also work on Linux with GUI and MacOS, but you should pay attention to the user/group management on these platforms.
 
    **⚠️ Important:** The docker container runs as the `fedadmin` user with UID 5000. Docker Desktop on Windows does not require any special steps, as it handles permissions automatically. If you are hosting on Linux/macOS, you need to ensure that a fedadmin user with UID 5000 has been created on the host system beforehand. Please refer to [1. Prepare the host system](deployment_prod.md#1-prepare-the-host-system).
 
-2. **Prepare configuration file**
+
+2. **Prepare the configuration file**
 
    ```bash
    # Create .env file from template
@@ -31,96 +34,130 @@ Development environment uses a docker container (`Dockerfile`) that includes dev
    - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
    - Any changes in this configuration file needs a container restart.
 
-3. **Open the project in VS Code**
-   - Open the project root in VS Code
-   - Press `F1` and select "Dev Containers: Reopen in Container"
-   - VS Code will build the image, start the container, and connect your workspace (first time may take a few minutes)
-   - The Flask development server starts automatically when the container starts.
+3. **Build and start the development container**
+
+   **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.yml`, so the application logs will use the correct local time.
+
+   Run from the project root:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   The first build may take a few minutes. After the container starts, Flask runs automatically inside the `web` service.
 
 4. **Initialize federation metadata certificates and database**
 
-   After the container is ready, open the integrated terminal (already inside the container) and run:
+   After the container is up, run these commands from the project root:
 
    ```bash
    # Generate signing certificates for SAML metadata
-   flask init-certs
+   docker compose exec --user fedadmin web flask init-certs
 
    # Create/update database tables using Flask-Migrate
-   flask db upgrade
+   docker compose exec --user fedadmin web flask db upgrade
 
    # Insert default data if tables are empty:
    # - Default roles (federation, full_member, sp_member)
    # - Federation configuration
    # - Federation Admin Org organization
    # - fedadmin user with randomly generated password (fed@example.com)
-   flask init-db
+   docker compose exec --user fedadmin web flask init-db
    ```
 
    **⚠️ Important:** The generated password will be shown on console, please keep it safe!
 
-   Check the files are generated in the integrated terminal (already inside the container):
+   Check the generated files:
 
    ```bash
-   # Check the generated files
-   fedadmin ➜ /app (main) $ ls app/storage/private/federation/
-   fed.crt  fed.key
-
-   fedadmin ➜ /app (main) $ ls instance/
-   fedadmin-dev.db
+   docker compose exec --user fedadmin web ls app/storage/private/federation/
+   docker compose exec --user fedadmin web ls instance/
    ```
 
-## Access the application
+   Expected files include:
 
-After completing the setup steps, verify everything is working:
+   ```text
+   app/storage/private/federation/fed.crt
+   app/storage/private/federation/fed.key
+   instance/fedadmin-dev.db
+   ```
 
-1. Visit http://127.0.0.1:5000/
-2. Try logging in with the federation admin account: `fed@example.com` / `the generated password`
+## Access the Application
+
+1. Visit `http://127.0.0.1:5000/`.
+2. Log in with `fed@example.com` and the password generated by `flask init-db`.
 
 ## Scheduled Tasks
 
-See [Scheduled Tasks](scheduled_tasks.md) to understand the scheduled tasks.
+See [Scheduled Tasks](scheduled_tasks.md) for details.
 
-Since the host Windows 11 development environments don't have crontab, you can execute commands in the integrated terminal (already inside the container) on-demand:
+For development, run scheduled commands manually when needed:
 
    ```bash
    # Regenerate metadata
-   flask regenerate-metadata
+   docker compose exec --user fedadmin web flask regenerate-metadata
 
    # Check eduGAIN updates
-   flask check-edugain-updates
+   docker compose exec --user fedadmin web flask check-edugain-updates
    ```
 
 ## Daily Development
 
-- **Edit code**: Modify files in VS Code, Flask auto-reloads automatically (FLASK_DEBUG=1)
-- **Change dependencies**: 
-  1. Edit `requirements.txt`
-  2. Run `pip install -r requirements.txt` (temporary)
-  3. Or rebuild container: Press `F1` → "Dev Containers: Rebuild Container" (permanent)
-- **Change environment variables**: 
-  1. Edit `.env` file
-  2. Restart container: Press `F1` → "Dev Containers: Rebuild Container"
-- **View application logs**:
-  1. Using Docker logs: On your host machine, run `docker compose logs -f web` from the project root directory (where `docker-compose.yml` is located).
-  2. Using log file: Application logs are also written to `/var/log/fedadmin/app.log` inside the container.
-- **Stop container**: Close VS Code window; it will automatically reconnect next time you open it
+- **Edit code**: Modify files on the host in your editor. Flask auto-reloads when `FLASK_DEBUG=1`.
+
+- **Open a shell inside the container**:
+
+  ```bash
+  docker compose exec --user fedadmin web bash
+  ```
+
+- **Change dependencies**:
+
+  ```bash
+  # After editing requirements.txt
+  docker compose up --build -d
+  ```
+
+- **Change environment variables**:
+
+  ```bash
+  # After editing .env
+  docker compose restart web
+  ```
+
+- **View logs**:
+
+  ```bash
+  docker compose logs -f web
+  ```
+
+  Application logs are also written to `/var/log/fedadmin/app.log` inside the container.
+
+- **Stop the container**:
+
+  ```bash
+  docker compose down
+  ```
 
 ## Troubleshooting
 
-If the container fails to start, follow these steps:
-
-1. **View container logs**
+1. **View container status and logs**
 
    ```bash
-   # Find container ID
-   docker ps -a | grep fedadmin
-
-   # View logs (replace <container-id> with actual ID)
-   docker logs <container-id>
-
-   # Or follow logs in real-time
-   docker logs -f <container-id>
+   docker compose ps
+   docker compose logs -f web
    ```
 
-2. **Reset and start over**
-   - Press `F1` → "Dev Containers: Rebuild Container" to rebuild and restart
+2. **Rebuild and restart**
+
+   ```bash
+   docker compose down
+   docker compose up --build -d
+   ```
+
+3. **Run Flask commands manually inside the container**
+
+   ```bash
+   docker compose exec --user fedadmin web bash
+   flask --help
+   ```
