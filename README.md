@@ -23,34 +23,38 @@ Based on this practical experience, we decided to share our knowledge and tools 
 
 ### Who/When/Why Use FedAdmin
 
-**Who**: Federation administrators who are responsible for managing their NREN's identity federation.
-
-**When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs and SPs.
-
-**Why**: 
-- This management concept and workflow have been successfully used in CARSI's actual projects for many years
-- The system can meet common federation management scenarios and shield the complexity of SAML metadata
-- It provides a solution for operating federations and exchanging metadata with eduGAIN metadata service
+- **Who**: Federation administrators who are responsible for managing their NREN's identity federation.
+- **When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs and SPs.
+- **Why**: 
+  - This management concept and workflow have been successfully used in CARSI's actual projects for many years
+  - The system can meet common federation management scenarios and shield the complexity of SAML metadata
+  - It provides a solution for operating federations and exchanging metadata with eduGAIN metadata service
 
 See [eduGAIN: Join As Federation](https://technical.edugain.org/joining_checklist) for a practical checklist before joining eduGAIN.
 
 ### Primary Deliverables
 
-Administrators of NREN‑operated identity federations use this project to manage their federation’s Identity Providers (IdPs) and Service Providers (SPs). The primary deliverables are federation metadata files stored under `./app/storage/public/federation/` (the final host‑side path may vary depending on deployment configuration):
+Administrators of NREN identity federations use this project to manage their federation’s Identity Providers (IdPs) and Service Providers (SPs). The primary deliverables are federation metadata files stored under `./app/storage/public/federation/` (the final host‑side path may vary depending on deployment configuration):
 
-**fed-metadata-beta.xml**: Beta metadata for entities pending approval. This file is ideal for federations that wish to maintain a separate test environment to verify the functionality of newly added IdPs and SPs.
+FedAdmin assumes that a federation normally needs two operational environments:
 
-**fed-metadata.xml**: Production metadata containing all approved entities. Entities validated in the test environment are promoted here, and all production services operate based on this file.
+- **Test environment**: A pre-production environment isolated from production. Member organizations can add IdP/SP entities by themselves, and newly added entities are immediately included in the beta federation metadata without waiting for federation administrator approval. This allows members to debug SAML metadata, login flows, attribute release, and SP integration before the entity is promoted to production.
+- **Production environment**: The formal federation environment used by production IdPs, SPs. Only entities that have passed member-side testing and federation administrator approval are included here.
 
-**fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined below, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
+CARSI operates this two-environment workflow in practice. For the test environment, CARSI also provides a test IdP with test user accounts, a test SP that displays released user attributes after login, and a test DS (Discovery Service) for selecting institutions. This lets a member organization focus on the entity it is adding: when adding a SP, it can test against the federation-provided test IdP; when adding an IdP, it can test against the federation-provided test SP. We recommend that new federations provide similar test and production environments so that metadata promotion and troubleshooting are smoother.
+
+The three federation metadata files map to these stages:
+
+- **fed-metadata-beta.xml**: Beta metadata for entities in the test environment. It includes entities in `INIT` or `APPROVING` status, so newly added entities can be tested immediately before they are approved for production.
+- **fed-metadata.xml**: Production metadata containing all approved entities. Entities validated in the test environment are promoted here after federation administrator approval, and all production services operate based on this file.
+- **fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined below, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
 
 ### About opt-in/opt-out
 
 FedAdmin supports both opt-in and opt-out models for managing entities in the federation:
 
-**Opt-In**: Each Service Provider (SP) and Identity Provider (IdP) must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
-
-**Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
+- **Opt-In**: Each Service Provider (SP) and Identity Provider (IdP) must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
+- **Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
 
 See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
 
@@ -62,6 +66,16 @@ FedAdmin provides a unique approach by allowing administrators to decide whether
 
 The system is organized into two main administrative modules with distinct roles and responsibilities:
 
+#### Entity Status and Approval Workflow
+
+IdP and SP entities use three statuses:
+
+- **`INIT`**: The entity is in the test/debugging stage. Member organizations can create, edit, delete, and test the entity. The entity is included in `fed-metadata-beta.xml`, but not in production metadata.
+- **`APPROVING`**: The entity has been submitted by the member organization for federation administrator review. It still remains in `fed-metadata-beta.xml` and is not yet available in production.
+- **`READY`**: The entity has been approved and is online in production. It is included in `fed-metadata.xml`; if eduGAIN participation is enabled, it is also included in `fed-metadata-edugain.xml`.
+
+The approval workflow exists to separate member-side testing from production publication. A member organization first creates and tests an entity in `INIT`. When testing is complete, the member submits it for approval, which changes the status to `APPROVING`. A federation administrator can then approve it, changing the status to `READY` and regenerating production federation metadata. Conceptually, approval promotes the entity metadata from the test federation metadata into the production federation metadata. The federation administrator can also reject the application, returning it to `INIT` for further debugging.
+
 #### Federation Administration (`/federation`)
 - **User Roles**: `federation` (federation administrator)
 - **Permissions**: Full access to all organizations and entities
@@ -72,7 +86,9 @@ The system is organized into two main administrative modules with distinct roles
   - Member organization management
 
 #### Member Administration (`/member`)
-- **User Roles**: `full_member`, `sp_member`
+- **User Roles**: Member administrator roles are scoped to a member organization and determine which entity types the organization can maintain:
+  - `full_member`: The member organization can maintain both IdP and SP entities
+  - `sp_member`: The member organization can maintain SP entities only
 - **Permissions**: Access limited to own organization's data only
 - **Core Functions**:
   - Entity lifecycle management (create, edit, delete IdP/SP entities)
