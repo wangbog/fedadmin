@@ -1,4 +1,4 @@
-from flask import url_for
+from flask import request, url_for
 from flask_admin.menu import MenuLink
 from flask_admin.form.upload import FileUploadInput, ImageUploadInput
 from flask_security import current_user
@@ -21,6 +21,35 @@ class SwitchRoleLink(MenuLink):
 
     def get_url(self):
         return url_for(self.target_endpoint)
+
+
+class CurrentUserLink(MenuLink):
+    """Read-only menu item that shows the signed-in user."""
+
+    @property
+    def name(self):
+        if current_user.is_authenticated:
+            username = current_user.username or current_user.email
+            return f"Signed in as '{username}'"
+        return "Signed in"
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def __init__(self, link_category):
+        super().__init__(
+            name="Signed in",
+            icon_type="fa",
+            icon_value="fa-user",
+            category=link_category,
+        )
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def get_url(self):
+        return request.url
 
 
 class SimpleFileUploadInput(FileUploadInput):

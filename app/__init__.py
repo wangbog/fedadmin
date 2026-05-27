@@ -3,7 +3,7 @@ from flask import Flask
 from flask_admin.menu import MenuLink
 from app.utils.logging_helpers import setup_logging
 from app.models import User, Role, Organization, Sp, Idp, Federation
-from app.modules.admin.widgets import SwitchRoleLink
+from app.modules.admin.widgets import CurrentUserLink, SwitchRoleLink
 from config import config
 from app.extensions import db, migrate, federation_admin, member_admin, security, mail
 
@@ -119,6 +119,7 @@ def create_app(config_name="default"):
             icon_type="fa",
             icon_value="fa-user",
         )
+        federation_admin.add_link(CurrentUserLink("Site"))
         federation_admin.add_link(
             SwitchRoleLink("member_admin.index", "Switch to Member Admin", "Site")
         )
@@ -156,6 +157,7 @@ def create_app(config_name="default"):
             icon_type="fa",
             icon_value="fa-user",
         )
+        member_admin.add_link(CurrentUserLink("Site"))
         member_admin.add_link(
             SwitchRoleLink(
                 "federation_admin.index", "Switch to Federation Admin", "Site"
