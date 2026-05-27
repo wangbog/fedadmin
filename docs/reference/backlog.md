@@ -28,7 +28,33 @@ The initial federation administrator created by `flask init-db` uses a randomly 
 4. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
 5. Consider adding administrator actions to resend password setup/reset links for existing users
 
-## 3. Synchronous Metadata Transformation and Regeneration
+## 3. Flask-Security Email Customization
+
+FedAdmin currently uses Flask-Security's built-in email templates and subject configuration. Future development should customize these emails as a complete set so account setup, password reset, password change notices, and related security emails have consistent FedAdmin wording and branding.
+
+In this project, custom email templates should be placed under:
+
+```text
+app/templates/security/email/
+```
+
+For each Flask-Security email, provide both formats when customizing:
+
+- `*.txt`: plain-text email body for clients that do not render HTML
+- `*.html`: HTML email body for clients that support formatted email
+
+For example, password reset/setup emails can be customized with:
+
+```text
+app/templates/security/email/reset_instructions.txt
+app/templates/security/email/reset_instructions.html
+```
+
+Use the official Flask-Security guide for the complete template list, subject configuration keys, available context variables, and signals:
+
+- https://flask-security.readthedocs.io/en/latest/customizing.html#emails
+
+## 4. Synchronous Metadata Transformation and Regeneration
 
 When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates the federation metadata automatically after each operation. 
 
@@ -56,7 +82,7 @@ We initially implemented APScheduler (with MemoryJobStore) for async processing 
    
    APScheduler works in single-process development but fails in Gunicorn's multi-production setup. Alternative solutions (Redis, database-backed schedulers, Celery) all introduce additional infrastructure dependencies beyond our lightweight architecture.
 
-## 4. Placeholder Federation Metadata Requirement
+## 5. Placeholder Federation Metadata Requirement
 
 When the federation is empty (no entities), the system automatically generates a placeholder metadata XML containing a placeholder EntityDescriptor with an SPSSODescriptor. This placeholder is required by the SAML v2.0 XSD schema and pyFF signing process.
 
@@ -140,7 +166,7 @@ The placeholder is generated in `./app/services/metadata.py` in the `_create_emp
 
 Consider publication timing carefully to avoid publishing metadata that only contains placeholder entities. Federation metadata should be published only when actual entities are registered and available.
 
-## 5. Multilingual Metadata Support
+## 6. Multilingual Metadata Support
 
 FedAdmin currently generates localized SAML metadata elements only in English (`xml:lang="en"`). This applies to organization information such as `OrganizationName`, `OrganizationDisplayName`, and `OrganizationURL`, as well as MDUI elements such as `DisplayName`, `Description`, `InformationURL`, and `PrivacyStatementURL`.
 
