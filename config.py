@@ -61,7 +61,8 @@ class Config:
     # ---- Flask-Security settings ----
     SECURITY_PASSWORD_SINGLE = False  # Allow repeated characters in passwords
     SECURITY_PASSWORD_LENGTH_MIN = 8  # Minimum password length
-    SECURITY_PASSWORD_COMPLEXITY = True  # Require special characters
+    SECURITY_PASSWORD_COMPLEXITY_CHECKER = "zxcvbn"
+    SECURITY_ZXCVBN_MINIMUM_SCORE = 3  # 0-4, where 3 means good or strong
 
     # Email notifications for password changes and resets
     SECURITY_SEND_PASSWORD_CHANGE_EMAIL = os.environ.get(

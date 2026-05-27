@@ -21,12 +21,15 @@ Users created by Federation Administrators or Member Administrators set their pa
 
 The initial federation administrator created by `flask init-db` uses a randomly generated password that is printed once on the console.
 
+Password setup, reset, and change flows use Flask-Security password validation with a minimum length of 8 characters and zxcvbn strength scoring enabled.
+
 **Remaining Security Recommendations:**
-1. Enforce or review strong password complexity requirements for all password setup and reset flows
-2. Implement mandatory email verification to validate user identities
-3. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
-4. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
-5. Consider adding administrator actions to resend password setup/reset links for existing users
+1. Review whether the minimum password length should be raised for production deployments
+2. Evaluate breached password checks, including operational impact of the external lookup dependency
+3. Implement mandatory email verification to validate user identities
+4. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
+5. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
+6. Consider adding administrator actions to resend password setup/reset links for existing users
 
 ## 3. Flask-Security Email Customization
 
