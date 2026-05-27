@@ -1,4 +1,4 @@
-# Production Deployment
+﻿# Production Deployment
 
 The production environment uses Docker Compose `docker-compose.prod.yml` with the production `Dockerfile.prod`.
 
@@ -11,7 +11,12 @@ The container includes the Linux system packages and Python dependencies require
   - Storage path: `./data/storage/` (host) ↔ `/app/app/storage/` (container)
   - Database path: `./data/instance/fedadmin-prod.db` (host) ↔ `/app/instance/fedadmin-prod.db` (container)
   - Log path: `./data/logs/` (host) ↔ `/var/log/fedadmin/` (container)
-- **Backup**: Please regularly backup above directories on host server
+- **Directory Permission**: The `./data` directories use mode `750` for security and are owned by `fedadmin:fedadmin`.
+- **Backup**: Regularly back up the following directories/files on the host server:
+  - `./data/instance/` (SQLite database)
+  - `./data/storage/` (metadata, certificates, uploaded files)
+  - `./data/logs/` (application logs)
+  - `.env` (environment configuration)
 
 ## Setup Steps
 
@@ -51,7 +56,7 @@ The container includes the Linux system packages and Python dependencies require
    # copy your project files to /data/fedadmin, or git clone it in /data/fedadmin
    ...
 
-   sudo chown -R fedadmin:fedadmin /data
+   sudo chown -R fedadmin:fedadmin /data/fedadmin
    ```
 
    Switch to user `fedadmin`, following steps are all under the `fedadmin` user:
@@ -61,10 +66,11 @@ The container includes the Linux system packages and Python dependencies require
    cd /data/fedadmin
    ```
 
-   Create bind mount directories and set ownership:
+   Create bind mount directories and set secure permissions:
 
    ```bash
    mkdir -p data/instance data/storage data/logs
+   # Restrict data directories to fedadmin owner/group
    chmod 750 -R data
    ```
 
@@ -140,17 +146,21 @@ The container includes the Linux system packages and Python dependencies require
    ```bash
    # Create .env.prod file from template
    cp .env.prod.example .env
+
+   # Protect sensitive environment variables
+   chmod 600 .env
    ```
 
    **⚠️ Important:** 
    - You must change all REQUIRED values before building the docker image! 
    - Always generate secure random keys using `openssl rand -hex 32`.
    - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
+   - Keep `.env` readable only by the deployment user because it contains sensitive secrets.
    - Any changes in this configuration file needs a container restart.
 
 4. **Build and start the production container**
 
-   **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.prod.yml`, so the application logs will use the correct local time.
+   **⚠️ Important:** The default timezone is `TZ=Asia/Shanghai` for China. Modify it in `docker-compose.prod.yml` if your server is located in another region, so the application logs use the correct local time.
 
    Run from the project root:
 
@@ -162,7 +172,7 @@ The container includes the Linux system packages and Python dependencies require
 
 5. **Initialize federation metadata certificates and database**
 
-   After the container is up, run these commands from the project root:
+   After the container is up, run these commands from the project root. The execution order cannot be changed: generate certificates, upgrade the database, then insert initial data.
 
    ```bash
    # Generate signing certificates for SAML metadata
@@ -213,12 +223,13 @@ Configure crontab as the `fedadmin` user on the host server to run these command
    # Edit crontab
    sudo -u fedadmin crontab -e
 
-   # add crontab rules
-   30 2 * * * cd /data/fedadmin && /usr/bin/docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
-   15 * * * * cd /data/fedadmin && /usr/bin/docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask check-edugain-updates >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   # Add crontab rules.
+   # -T disables pseudo-terminal allocation for non-interactive cron execution.
+   30 2 * * * cd /data/fedadmin && docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
+   15 * * * * cd /data/fedadmin && docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask check-edugain-updates >> /data/fedadmin/data/host_logs/cron.log 2>&1
    ```
 
-**Note:** Adjust the time and log path according to your deployment configuration.
+**Note:** Adjust the time and log path according to your deployment configuration. If `docker compose` is not available in cron's PATH, use the absolute path to your Docker CLI. Configure logrotate for `/data/fedadmin/data/host_logs/cron.log` to prevent long-term log file growth.
 
 Check the cron log file to verify task execution:
 
@@ -300,3 +311,15 @@ The cron log only contains cron command output. Application logs produced by the
    - HTTPS Certificate Management.
    - Security Settings.
    - Public Path Mapping: Expose `./data/storage/public/` through a public URL prefix such as `/public/` for federation metadata publication.
+
+3. **File Permission and Owner**
+   - Project files and mounted data directories should be owned by `fedadmin:fedadmin`.
+   - Sensitive files such as `.env` and `./data/storage/private/federation/fed.key` should use permission `600`.
+
+4. **Network and Firewall**
+   - Open port `443` for HTTPS web access and metadata publication.
+   - If using Nginx as the production entry point, restrict direct Gunicorn access on port `5000` to localhost or a trusted internal network.
+
+5. **Metadata Availability**
+   - Ensure the `/public/` URL path remains accessible so federation metadata can be fetched by IdPs, SPs, eduGAIN, or other federation services.
+
