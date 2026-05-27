@@ -45,6 +45,49 @@ class MetadataService:
     # Public Static Methods
     # ==========================
 
+    @staticmethod
+    def get_federation_metadata_files():
+        """Return dashboard information for generated federation metadata files."""
+        metadata_files = [
+            {
+                "label": "Production metadata",
+                "filename": "fed-metadata.xml",
+                "url": current_app.url_for(
+                    "main.public_storage",
+                    filename="public/federation/fed-metadata.xml",
+                ),
+                "path_key": "FEDERATION_METADATA_OUTPUT",
+            },
+            {
+                "label": "eduGAIN metadata",
+                "filename": "fed-metadata-edugain.xml",
+                "url": current_app.url_for(
+                    "main.public_storage",
+                    filename="public/federation/fed-metadata-edugain.xml",
+                ),
+                "path_key": "FEDERATION_METADATA_EDUGAIN_OUTPUT",
+            },
+            {
+                "label": "Beta metadata",
+                "filename": "fed-metadata-beta.xml",
+                "url": current_app.url_for(
+                    "main.public_storage",
+                    filename="public/federation/fed-metadata-beta.xml",
+                ),
+                "path_key": "FEDERATION_METADATA_BETA_OUTPUT",
+            },
+        ]
+
+        for item in metadata_files:
+            path = current_app.config.get(item["path_key"])
+            exists = bool(path and os.path.isfile(path))
+            item["exists"] = exists
+            item["generated_at"] = None
+            if exists:
+                item["generated_at"] = datetime.fromtimestamp(os.path.getmtime(path))
+
+        return metadata_files
+
     @classmethod
     def safe_regenerate(
         cls, app=None, output_path_key=None, statuses=None, edugain_only=False

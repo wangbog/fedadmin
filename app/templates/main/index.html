@@ -49,6 +49,23 @@
         .nav a:hover {
             text-decoration: underline;
         }
+
+        .deployer-note {
+            margin-top: 20px;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background: #eef5ff;
+        }
+
+        .deployer-note h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .deployer-note p {
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -66,7 +83,13 @@
             <p>A web based management tool for NREN identity federation administrators to operate federations, managing
                 Identity Providers (IdPs) and Service Providers (SPs), and exchanging metadata with eduGAIN metadata
                 service.</p>
-            <p>Customize this page to suit your application's needs at ./app/templates/main/index.html</p>
+            <div class="deployer-note">
+                <h2>Deployer Note</h2>
+                <p>This is a default landing page for the open-source FedAdmin project. The FedAdmin deployer should
+                    customize this page for the actual federation by editing
+                    <code>./app/templates/main/index.html</code>.
+                </p>
+            </div>
         </div>
     </div>
 </body>

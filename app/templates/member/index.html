@@ -1,0 +1,111 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<style>
+  .member-stat-card {
+    min-height: 172px;
+  }
+
+  .member-stat-title {
+    min-height: 72px;
+  }
+
+  .member-stat-value {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+</style>
+
+<div class="container-fluid">
+  <h1 class="mb-4">Member Dashboard</h1>
+
+  <div class="row">
+    {% if show_idp_stats %}
+    <div class="col-md-3">
+      <div class="card mb-3 member-stat-card">
+        <div class="card-body">
+          <h5 class="card-title member-stat-title">IdP Entities</h5>
+          <p class="display-4 mb-0 member-stat-value">{{ stats.idp_total }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="col-md-3">
+      <div class="card mb-3 member-stat-card">
+        <div class="card-body">
+          <h5 class="card-title member-stat-title">SP Entities</h5>
+          <p class="display-4 mb-0 member-stat-value">{{ stats.sp_total }}</p>
+        </div>
+      </div>
+    </div>
+    {% if show_idp_stats %}
+    <div class="col-md-3">
+      <div class="card mb-3 member-stat-card">
+        <div class="card-body">
+          <h5 class="card-title member-stat-title">IdPs Pending Approval</h5>
+          <p class="display-4 mb-0 member-stat-value">{{ stats.idp_approving }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="col-md-3">
+      <div class="card mb-3 member-stat-card">
+        <div class="card-body">
+          <h5 class="card-title member-stat-title">SPs Pending Approval</h5>
+          <p class="display-4 mb-0 member-stat-value">{{ stats.sp_approving }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      Federation Metadata
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">Deployer Note</h5>
+      <p class="mb-0">
+        This section is intended for the FedAdmin deployer. Configure and publish the official federation metadata URLs
+        according to the deployment documentation and your actual deployment environment. Without Nginx, use the
+        application URLs shown below. With Nginx static mapping, the public URLs are usually under
+        <code>/public/federation/...</code>.
+      </p>
+    </div>
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>Generated At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in metadata_files %}
+          <tr>
+            <td>{{ item.label }}</td>
+            <td><a href="{{ item.url }}" target="_blank">{{ item.url }}</a></td>
+            <td>
+              {% if item.exists %}
+              <span class="badge badge-success">Available</span>
+              {% else %}
+              <span class="badge badge-secondary">Missing</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.generated_at %}
+              {{ item.generated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
