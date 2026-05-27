@@ -1,4 +1,4 @@
-# Setup Development Environment
+﻿# Setup Development Environment
 
 The development environment uses Docker Compose `docker-compose.yml` with the development `Dockerfile`.
 
@@ -7,7 +7,7 @@ The container includes the Linux system packages and Python dependencies require
 ## Important Information
 
 - **Container User**: Runs as `fedadmin` user (UID/GID: 5000)
-- **Volume Mapping**: `.` (project root) → `/app` (entire project is bind mounted, and WORKDIR is /app)
+- **Volume Mapping**: `.` (project root) ↔ `/app` (entire project is bind mounted, and WORKDIR is /app)
   - Storage path: `./app/storage/` (host) ↔ `/app/app/storage/` (container)
   - Database path: `./instance/fedadmin-dev.db` (host) ↔ `/app/instance/fedadmin-dev.db` (container)
   - Log path: `/var/log/fedadmin/` (only in container)
@@ -26,17 +26,21 @@ The container includes the Linux system packages and Python dependencies require
    ```bash
    # Create .env file from template
    cp .env.dev.example .env
+
+   # Optional on Linux/macOS: protect sensitive environment variables
+   chmod 600 .env
    ```
 
    **⚠️ Important:** 
    - You must change all REQUIRED values before building the docker image! 
    - Always generate secure random keys using `openssl rand -hex 32`.
    - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
+   - On Linux/macOS, keep `.env` readable only by the deployment user because it may contain sensitive secrets.
    - Any changes in this configuration file needs a container restart.
 
 3. **Build and start the development container**
 
-   **⚠️ Important:** Change `TZ=Asia/Shanghai` to your local timezone in `docker-compose.yml`, so the application logs will use the correct local time.
+   **⚠️ Important:** The default timezone is `TZ=Asia/Shanghai` for China. Modify it in `docker-compose.yml` if your development environment is located in another region, so the application logs use the correct local time.
 
    Run from the project root:
 
@@ -48,7 +52,7 @@ The container includes the Linux system packages and Python dependencies require
 
 4. **Initialize federation metadata certificates and database**
 
-   After the container is up, run these commands from the project root:
+   After the container is up, run these commands from the project root. The execution order cannot be changed: generate certificates, upgrade the database, then insert initial data.
 
    ```bash
    # Generate signing certificates for SAML metadata
@@ -130,6 +134,7 @@ For development, run scheduled commands manually when needed:
   ```bash
   # Container stdout/stderr logs
   docker compose logs -f web
+
   # Application file logs
   docker compose exec --user fedadmin web tail -f /var/log/fedadmin/app.log
   ```
