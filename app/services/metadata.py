@@ -9,11 +9,14 @@ import hashlib
 import json
 import shutil
 from datetime import datetime, timedelta
+from email.utils import parseaddr
+from urllib.parse import urlparse
 from lxml import etree
 from flask import current_app, flash
-from app.models import Federation, Organization, Idp, Sp
+from app.models import Federation, Organization, Idp, Sp, User
 from app.models.edugain_status import EdugainStatus
 from app.models.entity_status import EntityStatus
+from app.models.organization_type import OrganizationType
 from app.services.metadata_validator import MetadataValidator
 from app.utils.http_helpers import fetch_url
 from app.extensions import db
@@ -1019,27 +1022,102 @@ class MetadataService:
         return f"_{uuid.uuid4().hex}"
 
     def _create_empty_metadata_xml(self) -> str:
-        """Generate a placeholder empty metadata XML (containing minimal elements)."""
+        """Generate placeholder metadata for an otherwise empty federation."""
         # Get registration authority from database
         fed = Federation.query.first()
         registration_authority = (
             fed.registration_authority if fed else "https://www.example.com"
         )
+        registration_policy_url = fed.registration_policy_url if fed else None
+        fed_admin_org = Organization.query.filter_by(
+            organization_type=OrganizationType.FEDERATION_ADMIN.value
+        ).first()
+        fed_admin_user = None
+        if fed_admin_org:
+            fed_admin_user = (
+                User.query.filter_by(
+                    organization_id=fed_admin_org.organization_id, active=True
+                )
+                .order_by(User.id)
+                .first()
+            )
 
-        # Build placeholder URLs from registration authority
+        placeholder_org_name = (
+            fed_admin_org.organization_name
+            if fed_admin_org
+            else self.app.config.get("FEDERATION_NAME", "samplefed")
+        )
+        placeholder_org_url = (
+            fed_admin_org.organization_url if fed_admin_org else registration_authority
+        )
+        mail_sender = fed_admin_user.email if fed_admin_user else None
+
+        parsed_authority = urlparse(registration_authority)
+        authority_host = parsed_authority.hostname or "example.com"
+        _, parsed_sender = parseaddr(mail_sender or "")
+        technical_email = parsed_sender or f"technical@{authority_host}"
+
+        # Build placeholder endpoints from federation metadata configuration.
         entity_id = f"{registration_authority}/placeholder"
         acs_location = f"{registration_authority}/placeholder/acs"
+        logo_url = f"{placeholder_org_url}/placeholder/logo.png"
 
-        root = etree.Element(f"{{{self.NAMESPACES['md']}}}EntitiesDescriptor")
+        root = etree.Element(
+            f"{{{self.NAMESPACES['md']}}}EntitiesDescriptor",
+            nsmap={
+                "md": self.NAMESPACES["md"],
+                "mdrpi": self.NAMESPACES["mdrpi"],
+                "mdui": self.NAMESPACES["mdui"],
+            },
+        )
         root.attrib["ID"] = self._generate_id()
 
         entity = etree.SubElement(root, f"{{{self.NAMESPACES['md']}}}EntityDescriptor")
         entity.attrib["entityID"] = entity_id
 
+        extensions = etree.SubElement(entity, f"{{{self.NAMESPACES['md']}}}Extensions")
+        ri = etree.SubElement(
+            extensions, f"{{{self.NAMESPACES['mdrpi']}}}RegistrationInfo"
+        )
+        ri.set("registrationAuthority", registration_authority)
+        ri.set(
+            "registrationInstant", datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        )
+        if registration_policy_url:
+            policy = etree.SubElement(
+                ri, f"{{{self.NAMESPACES['mdrpi']}}}RegistrationPolicy"
+            )
+            policy.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+            policy.text = registration_policy_url
+
         sp_sso = etree.SubElement(entity, f"{{{self.NAMESPACES['md']}}}SPSSODescriptor")
         sp_sso.attrib["protocolSupportEnumeration"] = (
             "urn:oasis:names:tc:SAML:2.0:protocol"
         )
+
+        sp_extensions = etree.SubElement(
+            sp_sso, f"{{{self.NAMESPACES['md']}}}Extensions"
+        )
+        ui = etree.SubElement(sp_extensions, f"{{{self.NAMESPACES['mdui']}}}UIInfo")
+
+        display_name = etree.SubElement(
+            ui, f"{{{self.NAMESPACES['mdui']}}}DisplayName"
+        )
+        display_name.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+        display_name.text = f"{placeholder_org_name} Placeholder SP"
+
+        description = etree.SubElement(
+            ui, f"{{{self.NAMESPACES['mdui']}}}Description"
+        )
+        description.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+        description.text = (
+            "Placeholder SP metadata used only when the federation has no entities."
+        )
+
+        logo = etree.SubElement(ui, f"{{{self.NAMESPACES['mdui']}}}Logo")
+        logo.set("width", "80")
+        logo.set("height", "80")
+        logo.text = logo_url
 
         acs = etree.SubElement(
             sp_sso, f"{{{self.NAMESPACES['md']}}}AssertionConsumerService"
@@ -1047,6 +1125,30 @@ class MetadataService:
         acs.attrib["Binding"] = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
         acs.attrib["Location"] = acs_location
         acs.attrib["index"] = "0"
+
+        org = etree.SubElement(entity, f"{{{self.NAMESPACES['md']}}}Organization")
+        org_name = etree.SubElement(
+            org, f"{{{self.NAMESPACES['md']}}}OrganizationName"
+        )
+        org_name.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+        org_name.text = placeholder_org_name
+
+        org_display_name = etree.SubElement(
+            org, f"{{{self.NAMESPACES['md']}}}OrganizationDisplayName"
+        )
+        org_display_name.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+        org_display_name.text = placeholder_org_name
+
+        org_url = etree.SubElement(org, f"{{{self.NAMESPACES['md']}}}OrganizationURL")
+        org_url.set("{http://www.w3.org/XML/1998/namespace}lang", "en")
+        org_url.text = placeholder_org_url
+
+        contact = etree.SubElement(entity, f"{{{self.NAMESPACES['md']}}}ContactPerson")
+        contact.set("contactType", "technical")
+        given_name = etree.SubElement(contact, f"{{{self.NAMESPACES['md']}}}GivenName")
+        given_name.text = "Federation Technical Contact"
+        email = etree.SubElement(contact, f"{{{self.NAMESPACES['md']}}}EmailAddress")
+        email.text = f"mailto:{technical_email}"
 
         return etree.tostring(
             root, pretty_print=True, xml_declaration=False, encoding="UTF-8"

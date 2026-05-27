@@ -58,7 +58,7 @@ We initially implemented APScheduler (with MemoryJobStore) for async processing 
 
 ## 4. Placeholder Federation Metadata Requirement
 
-When the federation is empty (no entities), the system automatically generates a placeholder metadata XML containing a minimal EntityDescriptor with an SPSSODescriptor. This placeholder is required by the SAML v2.0 XSD schema and pyFF signing process.
+When the federation is empty (no entities), the system automatically generates a placeholder metadata XML containing a placeholder EntityDescriptor with an SPSSODescriptor. This placeholder is required by the SAML v2.0 XSD schema and pyFF signing process.
 
 ### XSD Schema Requirement
 
@@ -86,16 +86,49 @@ The `minOccurs="1"` on the `<choice>` element means that at least one EntityDesc
 
 ### Placeholder Structure
 
-The placeholder metadata automatically generated when the federation is empty follows this structure:
+The placeholder metadata automatically generated when the federation is empty follows this structure. In addition to the SPSSODescriptor required to satisfy schema and signing requirements, it includes `mdrpi:RegistrationInfo`, `mdui:UIInfo`, `md:Organization`, and a technical `md:ContactPerson` so profile-oriented validators such as the eduGAIN validator do not treat the placeholder as a malformed entity.
+
+The organization name and URL are derived from the default `FEDERATION_ADMIN` organization created by `init-db`. The technical contact email is derived from an active user in that organization. The logo URL is a placeholder URL derived from the federation admin organization URL.
 
 ```xml
-<md:EntityDescriptor entityID="https://<registration_authority>/placeholder">
+<md:EntityDescriptor entityID="{registration_authority}/placeholder">
+    <md:Extensions>
+        <mdrpi:RegistrationInfo
+            registrationAuthority="{registration_authority}"
+            registrationInstant="{generation_time}">
+            <mdrpi:RegistrationPolicy xml:lang="en">
+                {registration_policy_url}
+            </mdrpi:RegistrationPolicy>
+        </mdrpi:RegistrationInfo>
+    </md:Extensions>
     <md:SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        <md:Extensions>
+            <mdui:UIInfo>
+                <mdui:DisplayName xml:lang="en">
+                    {federation_name} Placeholder SP
+                </mdui:DisplayName>
+                <mdui:Description xml:lang="en">
+                    Placeholder SP metadata used only when the federation has no entities.
+                </mdui:Description>
+                <mdui:Logo width="80" height="80">
+                    {federation_admin_organization_url}/placeholder/logo.png
+                </mdui:Logo>
+            </mdui:UIInfo>
+        </md:Extensions>
         <md:AssertionConsumerService 
             Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" 
-            Location="https://<registration_authority>/placeholder/acs" 
+            Location="{registration_authority}/placeholder/acs" 
             index="0"/>
     </md:SPSSODescriptor>
+    <md:Organization>
+        <md:OrganizationName xml:lang="en">{federation_name}</md:OrganizationName>
+        <md:OrganizationDisplayName xml:lang="en">{federation_name}</md:OrganizationDisplayName>
+        <md:OrganizationURL xml:lang="en">{federation_admin_organization_url}</md:OrganizationURL>
+    </md:Organization>
+    <md:ContactPerson contactType="technical">
+        <md:GivenName>Federation Technical Contact</md:GivenName>
+        <md:EmailAddress>mailto:{technical_contact}</md:EmailAddress>
+    </md:ContactPerson>
 </md:EntityDescriptor>
 ```
 
@@ -106,3 +139,21 @@ The placeholder is generated in `./app/services/metadata.py` in the `_create_emp
 ### Federation Metadata Publication Considerations
 
 Consider publication timing carefully to avoid publishing metadata that only contains placeholder entities. Federation metadata should be published only when actual entities are registered and available.
+
+## 5. Multilingual Metadata Support
+
+FedAdmin currently generates localized SAML metadata elements only in English (`xml:lang="en"`). This applies to organization information such as `OrganizationName`, `OrganizationDisplayName`, and `OrganizationURL`, as well as MDUI elements such as `DisplayName`, `Description`, `InformationURL`, and `PrivacyStatementURL`.
+
+This is acceptable for basic SAML metadata generation and may pass eduGAIN validator checks when no local language tag is selected. However, the eduGAIN SAML Profile recommends that entities provide English variants and, where appropriate, local-language variants for user-facing metadata. If a federation administrator explicitly selects a local language tag in the eduGAIN validator, the validator may warn that these elements do not have the native-language version.
+
+The current eduGAIN validator language selector appears to focus mainly on European languages, which may reflect the historical and operational context of eduGAIN. FedAdmin is intended as an open-source tool for NREN identity federations more broadly, including federations in countries or regions that have not yet joined eduGAIN. Therefore, future multilingual support should not be limited to the current validator language list.
+
+**Future Enhancement:**
+Future development should consider adding configurable multilingual metadata support, including:
+
+1. Federation-level configuration for default language and local language tags
+2. Localized organization fields for member organizations
+3. Localized IdP/SP display names and descriptions
+4. Localized SP information and privacy statement URLs
+5. Metadata transformation logic that emits multiple `xml:lang` variants instead of replacing all localized elements with English-only values
+6. Validation or warning checks for missing English or configured local-language variants
