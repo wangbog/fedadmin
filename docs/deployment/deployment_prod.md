@@ -57,7 +57,7 @@ The container includes the Linux system packages and Python dependencies require
    Switch to user `fedadmin`, following steps are all under the `fedadmin` user:
 
    ```bash
-   su fedadmin
+   sudo -u fedadmin bash
    cd /data/fedadmin
    ```
 
@@ -119,6 +119,13 @@ The container includes the Linux system packages and Python dependencies require
    ```
 
    In this example, `/data/fedadmin` is the project root on the host. Replace `/data/fedadmin/data/storage/public/` with the absolute path of your deployment's `./data/storage/public/` directory. The `/public/` URL prefix is used to avoid conflicts with FedAdmin's application routes such as `/federation/...`.
+
+   Because the host `data` directory is created with restricted permissions, ensure the Nginx worker user can traverse the public storage path. For example, if Nginx runs as the `nginx` user:
+
+   ```bash
+   sudo usermod -aG fedadmin nginx
+   sudo systemctl restart nginx
+   ```
 
    Example public metadata URLs:
 
@@ -186,7 +193,7 @@ The container includes the Linux system packages and Python dependencies require
    ```text
    app/storage/private/federation/fed.crt
    app/storage/private/federation/fed.key
-   instance/fedadmin-dev.db
+   instance/fedadmin-prod.db
    ```
 
 ## Access the Application
@@ -201,11 +208,10 @@ See [Scheduled Tasks](scheduled_tasks.md) for details.
 Configure crontab as the `fedadmin` user on the host server to run these commands automatically:
 
    ```bash
-   su fedadmin
-   mkdir -p /data/fedadmin/data/host_logs
+   sudo -u fedadmin mkdir -p /data/fedadmin/data/host_logs
 
    # Edit crontab
-   crontab -e
+   sudo -u fedadmin crontab -e
 
    # add crontab rules
    30 2 * * * cd /data/fedadmin && /usr/bin/docker compose -f docker-compose.prod.yml exec -T --user fedadmin web flask regenerate-metadata >> /data/fedadmin/data/host_logs/cron.log 2>&1
