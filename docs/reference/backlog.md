@@ -17,16 +17,16 @@ Future development should consider allowing member organizations to self-registe
 
 ## 2. Account Security Requirements
 
-Users created by Federation Administrators or Member Administrators are assigned their username as the default password. Upon first login, users are required to change their password. Currently, the system does not enforce email verification or password complexity requirements.
+Users created by Federation Administrators or Member Administrators set their password through a password setup/reset link. When email delivery is enabled, the link is sent to the user's email address; it is also shown once to the administrator after user creation.
 
-**Security Concerns and Recommendations:**
-This practice is highly insecure and poses significant security risks. Using usernames as default passwords creates predictable credentials that are easily guessed by attackers. Recommendations for improvement include:
-1. Implement secure password generation during user creation (e.g., randomly generated complex passwords)
-2. Enforce strong password complexity requirements (minimum length, mix of character types)
-3. Implement mandatory email verification to validate user identities
-4. Consider using secure password reset flows instead of forcing password changes on first login
-5. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
-6. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
+The initial federation administrator created by `flask init-db` uses a randomly generated password that is printed once on the console.
+
+**Remaining Security Recommendations:**
+1. Enforce or review strong password complexity requirements for all password setup and reset flows
+2. Implement mandatory email verification to validate user identities
+3. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
+4. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
+5. Consider adding administrator actions to resend password setup/reset links for existing users
 
 ## 3. Synchronous Metadata Transformation and Regeneration
 

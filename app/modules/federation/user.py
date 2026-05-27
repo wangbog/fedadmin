@@ -2,10 +2,14 @@ import re
 from flask import abort, flash, redirect, request
 from flask_admin import expose
 from flask_security import current_user
-from flask_security.utils import hash_password
 from flask_wtf.csrf import generate_csrf
 from markupsafe import Markup
 from app.extensions import db
+from app.utils.account_helpers import (
+    flash_password_setup_link,
+    send_password_setup_link,
+    set_random_password,
+)
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
 from app.utils.role_helpers import assign_user_roles
@@ -155,8 +159,8 @@ class FederationUserModelView(FederationBaseView):
             raise ValueError("Invalid email format.")
 
         if is_created:
-            # Set default password
-            model.password = hash_password(model.username)
+            # Set an unshared random password; the user sets their password by link.
+            set_random_password(model)
 
             # Set roles based on organization type
             organization = model.organization
@@ -179,6 +183,8 @@ class FederationUserModelView(FederationBaseView):
                 f"{current_user.id}({current_user.email}) created User "
                 f"#{model.id} '{model.username}'"
             )
+            reset_link, email_sent, email_message = send_password_setup_link(model)
+            flash_password_setup_link(model, reset_link, email_sent, email_message)
         else:
             logger.info(
                 f"[{client_ip}] [UPDATE] - User "

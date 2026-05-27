@@ -154,7 +154,7 @@ The container includes the Linux system packages and Python dependencies require
    **⚠️ Important:** 
    - You must change all REQUIRED values before building the docker image! 
    - Always generate secure random keys using `openssl rand -hex 32`.
-   - The application requires email configuration for password recovery functionality. Without proper email configuration, the password recovery feature will not work.
+   - The application requires email configuration for password recovery and new-user password setup links. Without proper email configuration, administrators must copy the setup/reset link shown after creating a user.
    - Keep `.env` readable only by the deployment user because it contains sensitive secrets.
    - Any changes in this configuration file needs a container restart.
 

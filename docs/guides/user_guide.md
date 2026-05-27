@@ -24,7 +24,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
 
 ### 2.1 Change Password
 - Navigate to `Site/Change Password` page
-- **Important**: You must change the default password upon first login!
+- The initial federation administrator created during deployment receives a randomly generated password from `flask init-db`
+- Change this deployment password after first login
 - This is a critical security requirement for protecting federation administrative access
 
 ### 2.2 Complete Federation Information
@@ -60,6 +61,10 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Create new users and assign them to specific organizations
 - Each user must be associated with an organization before they can be created
 - Users will receive appropriate roles based on their organization type
+- When a user is created, the system generates a password setup/reset link
+- If password reset email delivery is enabled, the link is emailed to the new user
+- The link is also shown once on the page for the administrator to copy if needed
+- Do not send or reuse predictable temporary passwords
 
 ## Current Member Organization and Users Management
 
@@ -69,7 +74,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
 
 ### 4.1 Change Password
 - Navigate to `Site/Change Password` page
-- **Important**: You must change the default password upon first login!
+- New organization users normally set their password through the setup/reset link created by their administrator
+- Users can later change their own password from this page
 - This is a critical security requirement for protecting administrative access
 
 ### 4.2 Complete Organization Information
@@ -87,6 +93,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Manage users within your current organization
 - Create, edit, or delete users as needed
 - Assign appropriate roles based on your current organization type
+- When a user is created, the system generates a password setup/reset link
+- If password reset email delivery is enabled, the link is emailed to the new user
+- The link is also shown once on the page for the administrator to copy if needed
 
 ## Identity Provider Management
 
