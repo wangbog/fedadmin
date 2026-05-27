@@ -170,9 +170,9 @@ The container includes the Linux system packages and Python dependencies require
 
    The first build may take a few minutes. After the container starts, Flask runs automatically inside the `web` service.
 
-5. **Initialize federation metadata certificates and database**
+5. **Initialize federation metadata certificates, database, and metadata files**
 
-   After the container is up, run these commands from the project root. The execution order cannot be changed: generate certificates, upgrade the database, then insert initial data.
+   After the container is up, run these commands from the project root. The execution order cannot be changed: generate certificates, upgrade the database, insert initial data, then ensure the initial federation metadata files exist.
 
    ```bash
    # Generate signing certificates for SAML metadata
@@ -187,6 +187,12 @@ The container includes the Linux system packages and Python dependencies require
    # - Federation Admin Org organization
    # - fedadmin user with randomly generated password (fed@example.com)
    docker compose -f docker-compose.prod.yml exec --user fedadmin web flask init-db
+
+   # Generate missing federation metadata files without overwriting existing files:
+   # - fed-metadata.xml
+   # - fed-metadata-edugain.xml
+   # - fed-metadata-beta.xml
+   docker compose -f docker-compose.prod.yml exec --user fedadmin web flask ensure-metadata
    ```
 
    **⚠️ Important:** The generated password will be shown on console, please keep it safe!
@@ -195,6 +201,7 @@ The container includes the Linux system packages and Python dependencies require
 
    ```bash
    docker compose -f docker-compose.prod.yml exec --user fedadmin web ls app/storage/private/federation/
+   docker compose -f docker-compose.prod.yml exec --user fedadmin web ls app/storage/public/federation/
    docker compose -f docker-compose.prod.yml exec --user fedadmin web ls instance/
    ```
 
@@ -203,6 +210,9 @@ The container includes the Linux system packages and Python dependencies require
    ```text
    app/storage/private/federation/fed.crt
    app/storage/private/federation/fed.key
+   app/storage/public/federation/fed-metadata.xml
+   app/storage/public/federation/fed-metadata-edugain.xml
+   app/storage/public/federation/fed-metadata-beta.xml
    instance/fedadmin-prod.db
    ```
 

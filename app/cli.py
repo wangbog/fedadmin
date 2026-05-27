@@ -166,6 +166,50 @@ def init_db_command():
     click.echo("\nDatabase initialization completed.")
 
 
+@click.command("ensure-metadata")
+@with_appcontext
+def ensure_metadata_command():
+    """Generate missing federation metadata files without overwriting existing files."""
+
+    generated = []
+    existing = []
+    failed = []
+
+    _ensure_metadata_output_dirs()
+
+    for label, output_path_key, statuses, edugain_only in _metadata_targets():
+        output_path = current_app.config[output_path_key]
+        if os.path.exists(output_path):
+            existing.append((label, output_path))
+            continue
+
+        click.echo(f"Generating missing {label}: {output_path}")
+        MetadataService.safe_regenerate(
+            output_path_key=output_path_key,
+            statuses=statuses,
+            edugain_only=edugain_only,
+        )
+
+        if os.path.exists(output_path):
+            generated.append((label, output_path))
+        else:
+            failed.append((label, output_path))
+
+    for label, output_path in existing:
+        click.echo(f"Exists: {label} ({output_path})")
+    for label, output_path in generated:
+        click.echo(f"Generated: {label} ({output_path})")
+
+    if failed:
+        for label, output_path in failed:
+            click.echo(f"Failed: {label} ({output_path})", err=True)
+        raise click.ClickException(
+            "Some metadata files could not be generated. Check logs and signing certificate configuration."
+        )
+
+    click.echo("Federation metadata files are present.")
+
+
 @click.command("regenerate-metadata")
 @with_appcontext
 def regenerate_metadata_command():
@@ -215,6 +259,45 @@ def check_edugain_updates_command():
         raise
 
 
+def register_commands(app):
+    app.cli.add_command(init_certs_command)
+    app.cli.add_command(init_db_command)
+    app.cli.add_command(ensure_metadata_command)
+    app.cli.add_command(regenerate_metadata_command)
+    app.cli.add_command(check_edugain_updates_command)
+
+
+def _metadata_targets():
+    """Return metadata generation targets in dashboard order."""
+    return [
+        (
+            "Production metadata",
+            "FEDERATION_METADATA_OUTPUT",
+            [EntityStatus.READY.value],
+            False,
+        ),
+        (
+            "eduGAIN metadata",
+            "FEDERATION_METADATA_EDUGAIN_OUTPUT",
+            [EntityStatus.READY.value],
+            True,
+        ),
+        (
+            "Beta metadata",
+            "FEDERATION_METADATA_BETA_OUTPUT",
+            [EntityStatus.INIT.value, EntityStatus.APPROVING.value],
+            False,
+        ),
+    ]
+
+
+def _ensure_metadata_output_dirs():
+    """Create directories that hold generated federation metadata files."""
+    for _, output_path_key, _, _ in _metadata_targets():
+        output_dir = os.path.dirname(current_app.config[output_path_key])
+        os.makedirs(output_dir, exist_ok=True)
+
+
 def _regenerate_all_metadata():
     """Helper function to regenerate all three federation metadata files.
 
@@ -226,25 +309,14 @@ def _regenerate_all_metadata():
 
     logger.info("Regenerating all federation metadata files")
 
-    # Generate beta metadata (for entities not yet ready)
-    MetadataService.safe_regenerate(
-        output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-        statuses=[
-            EntityStatus.INIT.value,
-            EntityStatus.APPROVING.value,
-        ],
-    )
-    # Generate main metadata (for ready entities)
-    MetadataService.safe_regenerate(
-        output_path_key="FEDERATION_METADATA_OUTPUT",
-        statuses=[EntityStatus.READY.value],
-    )
-    # Generate eduGAIN metadata (for eduGAIN-enabled entities)
-    MetadataService.safe_regenerate(
-        output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-        statuses=[EntityStatus.READY.value],
-        edugain_only=True,
-    )
+    _ensure_metadata_output_dirs()
+
+    for _, output_path_key, statuses, edugain_only in _metadata_targets():
+        MetadataService.safe_regenerate(
+            output_path_key=output_path_key,
+            statuses=statuses,
+            edugain_only=edugain_only,
+        )
 
     logger.info("All federation metadata files regenerated successfully")
 
@@ -254,10 +326,3 @@ def _generate_secure_password(length=16):
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     password = "".join(secrets.choice(alphabet) for _ in range(length))
     return password
-
-
-def register_commands(app):
-    app.cli.add_command(init_certs_command)
-    app.cli.add_command(init_db_command)
-    app.cli.add_command(regenerate_metadata_command)
-    app.cli.add_command(check_edugain_updates_command)
