@@ -19,6 +19,7 @@ from app.models.entity_status import EntityStatus
 from app.models.organization_type import OrganizationType
 from app.services.metadata_validator import MetadataValidator
 from app.utils.http_helpers import fetch_url
+from app.utils.xml_helpers import safe_fromstring, safe_parse
 from app.extensions import db
 
 logger = logging.getLogger(__name__)
@@ -190,7 +191,7 @@ class MetadataService:
 
         # Validate returned content is valid XML
         try:
-            etree.fromstring(content.encode("utf-8"))
+            safe_fromstring(content)
         except etree.XMLSyntaxError as e:
             error_msg = f"eduGAIN returned invalid XML: {str(e)}"
             logger.error(f"[Metadata] {error_msg}")
@@ -212,9 +213,8 @@ class MetadataService:
         if not expected_descriptor:
             raise ValueError(f"Unsupported entity type: {entity_type}")
 
-        parser = etree.XMLParser(resolve_entities=False, no_network=True)
         try:
-            root = etree.fromstring(metadata_content.encode("utf-8"), parser=parser)
+            root = safe_fromstring(metadata_content)
         except etree.XMLSyntaxError as exc:
             raise ValueError(f"eduGAIN returned invalid XML: {exc}") from exc
 
@@ -241,7 +241,7 @@ class MetadataService:
             Scope string if found, None otherwise
         """
         try:
-            root = etree.fromstring(metadata_content.encode("utf-8"))
+            root = safe_fromstring(metadata_content)
             ns = {
                 "md": MetadataService.NAMESPACES["md"],
                 "shibmd": MetadataService.NAMESPACES["shibmd"],
@@ -658,7 +658,7 @@ class MetadataService:
         if not os.path.exists(original_path):
             raise FileNotFoundError(f"Original metadata not found: {original_path}")
 
-        tree = etree.parse(original_path)
+        tree = safe_parse(original_path)
         root = tree.getroot()
 
         self._ensure_namespaces(root)

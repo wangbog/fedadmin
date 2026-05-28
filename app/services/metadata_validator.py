@@ -34,6 +34,7 @@ from werkzeug.datastructures import FileStorage
 import xmlschema
 import os
 import re
+from app.utils.xml_helpers import safe_fromstring
 
 
 @dataclass
@@ -111,7 +112,7 @@ class MetadataValidator:
 
         # 2. XML parsing check
         try:
-            root = etree.fromstring(content)
+            root = safe_fromstring(content)
         except etree.XMLSyntaxError as e:
             result.success = False
             result.errors.append(ValidationError("E002", f"Invalid XML format: {e}"))
