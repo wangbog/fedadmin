@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_admin.menu import MenuLink
 from app.utils.logging_helpers import setup_logging
-from app.models import User, Role, Organization, Sp, Idp, Federation
+from app.models import User, Role, Organization, Sp, Idp, Federation, EmailDelivery
 from app.modules.admin.widgets import CurrentUserLink, SwitchRoleLink
 from config import config
 from app.extensions import db, migrate, federation_admin, member_admin, security, mail
@@ -85,6 +85,7 @@ def create_app(config_name="default"):
             FederationIdpModelView,
             FederationSpModelView,
             FederationFederationModelView,
+            FederationEmailDeliveryModelView,
         )
 
         federation_admin.add_view(
@@ -112,6 +113,15 @@ def create_app(config_name="default"):
         )
         federation_admin.add_view(
             FederationSpModelView(Sp, db.session, name="SP", endpoint="federation_sp")
+        )
+        federation_admin.add_view(
+            FederationEmailDeliveryModelView(
+                EmailDelivery,
+                db.session,
+                name="Email Delivery",
+                endpoint="federation_email_delivery",
+                category="System",
+            )
         )
 
         federation_admin.add_category(

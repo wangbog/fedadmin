@@ -7,6 +7,7 @@ from flask_security.signals import reset_password_instructions_sent
 from flask_security.utils import config_value, hash_password, send_mail
 from markupsafe import Markup, escape
 
+from app.services.mail_delivery import get_last_delivery_status
 from app.utils.logging_helpers import logger
 
 
@@ -39,6 +40,12 @@ def send_password_setup_link(user):
             reset_link=reset_link,
             reset_token=reset_token,
         )
+        delivery_status = get_last_delivery_status()
+        if delivery_status == "failed":
+            return reset_link, False, "Password setup email could not be sent."
+        if delivery_status == "suppressed":
+            return reset_link, False, "Password setup email sending is suppressed."
+
         reset_password_instructions_sent.send(
             current_app._get_current_object(),
             _async_wrapper=current_app.ensure_sync,
@@ -48,8 +55,8 @@ def send_password_setup_link(user):
         )
         return reset_link, True, "Password setup email sent."
     except Exception as exc:
-        logger.exception(
-            "[Account] Failed to send password setup email to user #%s: %s",
+        logger.warning(
+            "[Account] Password setup email was not sent to user #%s: %s",
             user.id,
             exc,
         )

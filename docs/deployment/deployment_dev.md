@@ -34,7 +34,9 @@ The container includes the Linux system packages and Python dependencies require
    **⚠️ Important:** 
    - You must change all REQUIRED values before building the docker image! 
    - Always generate secure random keys using `openssl rand -hex 32`.
-   - The application requires email configuration for password recovery and new-user password setup links. Without proper email configuration, administrators must copy the setup/reset link shown after creating a user.
+   - The application uses email for password recovery, password change notices, and new-user password setup links. SMTP delivery failures are recorded and shown in `Federation Admin/System/Email Delivery`; they do not cancel the related account action.
+   - If a test SMTP provider can only send to verified recipients, the action will continue and the failed email will be recorded. For new users, administrators can copy the setup/reset link shown once after user creation.
+   - Use `MAIL_SUPPRESS_SEND=True` only when you intentionally want to skip all outgoing email during development. Suppressed emails are also recorded in Email Delivery.
    - On Linux/macOS, keep `.env` readable only by the deployment user because it may contain sensitive secrets.
    - Any changes in this configuration file needs a container restart.
 

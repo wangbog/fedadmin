@@ -8,6 +8,7 @@ __all__ = [
     "FederationFederationModelView",
     "FederationIdpModelView",
     "FederationSpModelView",
+    "FederationEmailDeliveryModelView",
 ]
 
 
@@ -40,4 +41,9 @@ def __getattr__(name):
         from .sp import FederationSpModelView
 
         return FederationSpModelView
+    if name == "FederationEmailDeliveryModelView":
+        from .email_delivery import FederationEmailDeliveryModelView
+
+        return FederationEmailDeliveryModelView
+
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

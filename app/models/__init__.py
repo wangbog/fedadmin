@@ -7,3 +7,4 @@ from .entity_status import EntityStatus
 from .edugain_status import EdugainStatus
 from .organization_type import OrganizationType
 from .federation import Federation
+from .email_delivery import EmailDelivery

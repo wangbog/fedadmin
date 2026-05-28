@@ -62,8 +62,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Each user must be associated with an organization before they can be created
 - Users will receive appropriate roles based on their organization type
 - When a user is created, the system generates a password setup/reset link
-- If password reset email delivery is enabled, the link is emailed to the new user
+- The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
+- Email delivery status can be reviewed in `Federation Admin/System/Email Delivery`
 - Do not send or reuse predictable temporary passwords
 
 ## Current Member Organization and Users Management
@@ -94,8 +95,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Create, edit, or delete users as needed
 - Assign appropriate roles based on your current organization type
 - When a user is created, the system generates a password setup/reset link
-- If password reset email delivery is enabled, the link is emailed to the new user
+- The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
+- Email delivery status can be reviewed by federation administrators in `Federation Admin/System/Email Delivery`
 
 ## Identity Provider Management
 

@@ -66,10 +66,13 @@ class Config:
 
     # Email notifications for password changes and resets
     SECURITY_SEND_PASSWORD_CHANGE_EMAIL = os.environ.get(
-        "SECURITY_SEND_PASSWORD_CHANGE_EMAIL", "False"
+        "SECURITY_SEND_PASSWORD_CHANGE_EMAIL", "True"
     ).lower() in ("true", "1", "t")
     SECURITY_SEND_PASSWORD_RESET_EMAIL = os.environ.get(
-        "SECURITY_SEND_PASSWORD_RESET_EMAIL", "False"
+        "SECURITY_SEND_PASSWORD_RESET_EMAIL", "True"
+    ).lower() in ("true", "1", "t")
+    SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL = os.environ.get(
+        "SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL", "True"
     ).lower() in ("true", "1", "t")
 
     SECURITY_REGISTERABLE = False

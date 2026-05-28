@@ -4,10 +4,11 @@ from flask_security import Security
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
 from flask_mail import Mail
+from app.services.mail_delivery import RecordingMailUtil
 
 db = SQLAlchemy()
 migrate = Migrate()
-security = Security()
+security = Security(mail_util_cls=RecordingMailUtil)
 mail = Mail()
 
 from app.modules.federation.index import FederationAdminIndexView

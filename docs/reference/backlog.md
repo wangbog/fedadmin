@@ -17,7 +17,7 @@ Future development should consider allowing member organizations to self-registe
 
 ## 2. Account Security Requirements
 
-Users created by Federation Administrators or Member Administrators set their password through a password setup/reset link. When email delivery is enabled, the link is sent to the user's email address; it is also shown once to the administrator after user creation.
+Users created by Federation Administrators or Member Administrators set their password through a password setup/reset link. FedAdmin attempts to email the link to the user's email address, records the delivery status, and shows the link once to the administrator after user creation.
 
 The initial federation administrator created by `flask init-db` uses a randomly generated password that is printed once on the console.
 
