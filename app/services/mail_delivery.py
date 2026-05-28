@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask import current_app, flash, g, has_request_context
 from flask_security.mail_util import MailUtil
@@ -54,7 +54,7 @@ class RecordingMailUtil(MailUtil):
             recipient=recipient,
             status="sent",
             user=user,
-            sent_at=datetime.now(timezone.utc),
+            sent_at=datetime.now(),
         )
         return result
 

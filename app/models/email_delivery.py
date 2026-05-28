@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from ..extensions import db
 
@@ -17,7 +17,7 @@ class EmailDelivery(db.Model):
         db.DateTime,
         nullable=False,
         index=True,
-        default=lambda: datetime.now(timezone.utc),
+        default=datetime.now,
     )
     sent_at = db.Column(db.DateTime, nullable=True)
 
