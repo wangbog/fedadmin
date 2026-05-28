@@ -2,7 +2,7 @@ import os
 from flask import flash, request, redirect, current_app
 from flask_security import current_user
 from urllib.parse import urlparse
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from flask_admin import expose
 from flask_wtf.csrf import generate_csrf
 from wtforms import SelectField
@@ -77,7 +77,7 @@ class FederationOrganizationModelView(FederationBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(

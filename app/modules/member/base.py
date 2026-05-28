@@ -77,6 +77,8 @@ class MemberBaseView(BaseAdminView):
         if not success:
             raise ValueError(f"Could not retrieve entity from eduGAIN: {result}")
 
+        MetadataService.validate_edugain_entity_type(result, model.entity_type)
+
         # Generate temp filename using same namegen as file upload
         class FakeFile:
             filename = "metadata.xml"
@@ -103,7 +105,7 @@ class MemberBaseView(BaseAdminView):
         # Automatically extract and set scope for IdP entities
         if model.entity_type == "idp":
             extracted_scope = MetadataService.extract_scope_from_idp_metadata(result)
-            setattr(model, "idp_scope", extracted_scope)
+            setattr(model, "idp_scope", extracted_scope or "")
 
         # Set nullable=False fields
         setattr(model, model.entity_type + "_description", "")

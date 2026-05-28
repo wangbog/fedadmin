@@ -31,6 +31,16 @@ def safe_ext(filename):
     return ""
 
 
+def is_within_directory(base_dir, target_path):
+    """Return True when target_path stays inside base_dir."""
+    try:
+        real_base = os.path.normcase(os.path.realpath(base_dir))
+        real_target = os.path.normcase(os.path.realpath(target_path))
+        return os.path.commonpath([real_base, real_target]) == real_base
+    except ValueError:
+        return False
+
+
 def idp_metadata_namegen(model, file_data):
     """Generate filename for IdP metadata file."""
     ext = safe_ext(file_data.filename)
@@ -82,9 +92,8 @@ def move_uploaded_file(
         ValueError: If target path is invalid (directory traversal attempt)
     """
     # Check whether the final path is within the storage_root to prevent directory traversal
-    real_storage = os.path.realpath(storage_root)
     real_final = os.path.realpath(os.path.join(storage_root, final_relative))
-    if not real_final.startswith(real_storage):
+    if not is_within_directory(storage_root, real_final):
         raise ValueError("Invalid target path")
 
     # If paths are the same, no need to move
@@ -106,7 +115,7 @@ def move_uploaded_file(
     # Delete old file if requested and it's different from the new one
     if delete_old and old_relative and old_relative != final_relative:
         old_path = os.path.join(storage_root, old_relative)
-        if os.path.exists(old_path):
+        if is_within_directory(storage_root, old_path) and os.path.exists(old_path):
             os.remove(old_path)
 
     return final_relative

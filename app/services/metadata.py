@@ -10,7 +10,7 @@ import json
 import shutil
 from datetime import datetime, timedelta
 from email.utils import parseaddr
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from lxml import etree
 from flask import current_app, flash
 from app.models import Federation, Organization, Idp, Sp, User
@@ -177,8 +177,8 @@ class MetadataService:
         Returns:
             (success status, metadata XML content or error message)
         """
-        api_url = (
-            f"https://technical.edugain.org/api?action=show_entity&e_id={entity_id}"
+        api_url = "https://technical.edugain.org/api?" + urlencode(
+            {"action": "show_entity", "e_id": entity_id}
         )
 
         logger.info(f"[Metadata] Fetching metadata from eduGAIN: {entity_id}")
@@ -200,6 +200,29 @@ class MetadataService:
             f"[Metadata] Successfully fetched metadata from eduGAIN: {entity_id}"
         )
         return True, content
+
+    @classmethod
+    def validate_edugain_entity_type(cls, metadata_content, entity_type):
+        """Confirm eduGAIN metadata contains the expected SAML role descriptor."""
+        expected_descriptor = {
+            "idp": "IDPSSODescriptor",
+            "sp": "SPSSODescriptor",
+        }.get(entity_type)
+
+        if not expected_descriptor:
+            raise ValueError(f"Unsupported entity type: {entity_type}")
+
+        parser = etree.XMLParser(resolve_entities=False, no_network=True)
+        try:
+            root = etree.fromstring(metadata_content.encode("utf-8"), parser=parser)
+        except etree.XMLSyntaxError as exc:
+            raise ValueError(f"eduGAIN returned invalid XML: {exc}") from exc
+
+        ns = {"md": cls.NAMESPACES["md"]}
+        if root.find(f".//md:{expected_descriptor}", namespaces=ns) is None:
+            raise ValueError(
+                f"eduGAIN metadata does not contain {expected_descriptor}."
+            )
 
     @staticmethod
     def calculate_sha1(content):

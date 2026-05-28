@@ -2,7 +2,7 @@ import os
 from urllib.parse import urlparse
 from flask import abort, current_app, request, flash
 from flask_security import current_user
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from app.models import Idp, Sp
 from app.models.entity_status import EntityStatus
 from app.models.organization_type import OrganizationType
@@ -56,7 +56,7 @@ class MemberOrganizationModelView(MemberBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(

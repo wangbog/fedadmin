@@ -12,6 +12,7 @@ from flask import (
 from flask_security import auth_required, current_user
 from . import main_bp
 from app.models import Idp, Sp
+from app.utils.file_helpers import is_within_directory
 from app.utils.logging_helpers import logger, get_client_ip
 
 # Entity type mapping: key used in URL, value is (model class, file field name)
@@ -88,9 +89,8 @@ def download_file(entity_type, entity_id):
 
     # Build the full file path
     storage_root = current_app.config["STORAGE_ROOT"]
-    real_storage = os.path.realpath(storage_root)
     abs_path = os.path.realpath(os.path.join(storage_root, file_relative))
-    if not abs_path.startswith(real_storage):
+    if not is_within_directory(storage_root, abs_path):
         abort(404)
     if not os.path.isfile(abs_path):
         abort(404)

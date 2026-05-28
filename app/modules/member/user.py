@@ -3,7 +3,7 @@ from flask import abort, flash, redirect, request
 from flask_admin import expose
 from flask_security import current_user
 from flask_wtf.csrf import generate_csrf
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from app.extensions import db
 from app.models import Organization
 from app.utils.account_helpers import (
@@ -45,7 +45,7 @@ class MemberUserModelView(MemberBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(".details_view", id=model.id, url=return_path)

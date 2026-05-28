@@ -2,7 +2,7 @@ from flask import flash, redirect, url_for, request
 from flask_admin import expose
 from flask_wtf.csrf import generate_csrf
 from flask_security import current_user
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from app.extensions import db
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
@@ -66,7 +66,7 @@ class FederationSpModelView(FederationBaseView):
         "sp_status": lambda v, c, m, p: v._format_enum(m.sp_status, EntityStatus),
         "sp_edugain": lambda v, c, m, p: v._format_enum(m.sp_edugain, EdugainStatus),
         "sp_logo": lambda v, c, m, p: (
-            Markup(f'<img src="{m.sp_logo}" style="max-height:50px;">')
+            Markup(f'<img src="{escape(m.sp_logo)}" style="max-height:50px;">')
             if m.sp_logo
             else ""
         ),
@@ -90,7 +90,7 @@ class FederationSpModelView(FederationBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(".details_view", id=model.sp_id, url=return_path)

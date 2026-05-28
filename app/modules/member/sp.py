@@ -5,7 +5,7 @@ from flask_security import current_user
 from flask_admin import expose
 from flask_admin.form import FileUploadField
 from flask_wtf.csrf import generate_csrf
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from wtforms import SelectField
 from werkzeug.datastructures import FileStorage
 from app.services.metadata import MetadataService
@@ -76,7 +76,7 @@ class MemberSpModelView(MemberBaseView):
         "sp_status": lambda v, c, m, p: v._format_enum(m.sp_status, EntityStatus),
         "sp_edugain": lambda v, c, m, p: v._format_enum(m.sp_edugain, EdugainStatus),
         "sp_logo": lambda v, c, m, p: (
-            Markup(f'<img src="{m.sp_logo}" style="max-height:50px;">')
+            Markup(f'<img src="{escape(m.sp_logo)}" style="max-height:50px;">')
             if m.sp_logo
             else ""
         ),
@@ -134,7 +134,7 @@ class MemberSpModelView(MemberBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(".details_view", id=model.sp_id, url=return_path)

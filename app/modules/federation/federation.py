@@ -1,7 +1,7 @@
 from flask import request, abort, flash
 from urllib.parse import urlparse
 from flask_security import current_user
-from markupsafe import Markup
+from markupsafe import Markup, escape
 from app.utils.logging_helpers import logger, get_client_ip
 from .base import FederationBaseView
 
@@ -50,7 +50,7 @@ class FederationFederationModelView(FederationBaseView):
 
     def _render_actions(self, model):
         actions = []
-        return_path = request.full_path
+        return_path = escape(request.full_path)
 
         # View Button (always available)
         details_url = self.get_url(".details_view", id=model.id, url=return_path)

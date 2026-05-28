@@ -285,6 +285,12 @@ class MetadataValidator:
             return
 
         scope_elem = extensions.find("shibmd:Scope", ns)
+        if scope_elem is None:
+            result.success = False
+            result.errors.append(
+                ValidationError("E013", "Must contain shibmd:Scope element")
+            )
+            return
 
         # Check regexp attribute
         regexp = scope_elem.get("regexp", "false").lower()
