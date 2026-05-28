@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from email.utils import parseaddr
 from urllib.parse import urlparse, urlencode
 from lxml import etree
-from flask import current_app, flash
+from flask import current_app, flash, has_request_context
 from app.models import Federation, Organization, Idp, Sp, User
 from app.models.edugain_status import EdugainStatus
 from app.models.entity_status import EntityStatus
@@ -112,27 +112,40 @@ class MetadataService:
             logger.exception(f"[Metadata] Regeneration failed: {output_path_key} - {e}")
 
     @classmethod
-    def safe_retransform_all(cls, app=None):
+    def safe_retransform_all(cls, app=None, raise_on_error=False):
         """
         Safely re-transform all entities metadata.
-        Executes synchronously, intended to be called from background tasks.
+        Executes synchronously and returns whether the operation completed.
         """
         if app is None:
             app = current_app._get_current_object()
         try:
             service = cls(app)
-            service._retransform_all_entities()
-            logger.info(
-                "[Metadata] Full re-transformation and regeneration completed successfully."
-            )
+            result = service._retransform_all_entities(raise_on_error=raise_on_error)
+            if result:
+                logger.info(
+                    "[Metadata] Full re-transformation and regeneration completed successfully."
+                )
+                return True
+            logger.warning("[Metadata] Full re-transformation did not complete.")
+            return False
         except Exception as e:
             logger.exception(
                 f"[Metadata] Full re-transformation and regeneration failed: {e}"
             )
+            if raise_on_error:
+                raise
+            return False
 
     @classmethod
     def safe_transform(
-        cls, entity_type, entity_id, original_path, organization_id, app=None
+        cls,
+        entity_type,
+        entity_id,
+        original_path,
+        organization_id,
+        app=None,
+        raise_on_error=False,
     ):
         """
         Safely transform entity metadata, catching exceptions and showing flash messages.
@@ -147,11 +160,16 @@ class MetadataService:
             logger.info(
                 f"[Metadata] Transformation completed successfully: {entity_type} #{entity_id}"
             )
+            return True
         except Exception as e:
-            flash(f"Failed to transform metadata: {e}", "error")
             logger.exception(
                 f"[Metadata] Transformation failed: {entity_type} #{entity_id} - {e}"
             )
+            if raise_on_error:
+                raise
+            if has_request_context():
+                flash(f"Failed to transform metadata: {e}", "error")
+            return False
 
     @staticmethod
     def validate_metadata(entity_type, file_storage, exclude_id=None):
@@ -704,7 +722,7 @@ class MetadataService:
         logger.info(f"[Metadata] Transformed metadata saved to {transformed_path}")
         return transformed_path
 
-    def _retransform_all_entities(self):
+    def _retransform_all_entities(self, raise_on_error=False):
         """Re-transform all non-ALREADY_IN entities with new federation configuration."""
         lock_file = os.path.join(tempfile.gettempdir(), "fedadmin-transform-all.lock")
         with open(lock_file, "w") as lf:
@@ -714,11 +732,16 @@ class MetadataService:
                 logger.warning(
                     "[Metadata] Another full re-transformation is already in progress. Skipping."
                 )
-                return
+                if raise_on_error:
+                    raise RuntimeError(
+                        "Another full metadata re-transformation is already in progress."
+                    )
+                return False
 
             try:
                 storage_root = self.app.config["STORAGE_ROOT"]
                 count = 0
+                errors = []
 
                 # Process IdPs
                 idps = Idp.query.filter(
@@ -736,9 +759,11 @@ class MetadataService:
                         )
                         count += 1
                     except Exception as e:
-                        logger.error(
-                            f"[Metadata] Failed to re-transform IdP #{idp.idp_id}: {e}"
+                        error_msg = (
+                            f"IdP #{idp.idp_id} ({idp.idp_entityid}): {e}"
                         )
+                        errors.append(error_msg)
+                        logger.error(f"[Metadata] Failed to re-transform {error_msg}")
 
                 # Process SPs
                 sps = Sp.query.filter(
@@ -756,9 +781,18 @@ class MetadataService:
                         )
                         count += 1
                     except Exception as e:
-                        logger.error(
-                            f"[Metadata] Failed to re-transform SP #{sp.sp_id}: {e}"
-                        )
+                        error_msg = f"SP #{sp.sp_id} ({sp.sp_entityid}): {e}"
+                        errors.append(error_msg)
+                        logger.error(f"[Metadata] Failed to re-transform {error_msg}")
+
+                if errors:
+                    error_text = "Metadata re-transformation failed:\n" + "\n".join(
+                        errors
+                    )
+                    logger.error(f"[Metadata] {error_text}")
+                    if raise_on_error:
+                        raise RuntimeError(error_text)
+                    return False
 
                 logger.info(f"[Metadata] Successfully re-transformed {count} entities.")
 
@@ -780,6 +814,7 @@ class MetadataService:
                     edugain_only=True,
                 )
                 logger.info("[Metadata] Federation metadata regeneration completed.")
+                return True
 
             finally:
                 portalocker.unlock(lf)

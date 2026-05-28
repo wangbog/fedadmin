@@ -255,6 +255,18 @@ class MemberSpModelView(MemberBaseView):
             )
             return redirect(redirect_url)
 
+        if not self._has_current_transformed_metadata(model):
+            flash(
+                "Transformed metadata is missing or outdated. Please edit and save this entity again before submitting.",
+                "error",
+            )
+            logger.warning(
+                f"[{client_ip}] [APPLY FAILED] - User "
+                f"{current_user.id}({current_user.email}) failed to apply SP "
+                f"#{model.sp_id} '{model.sp_name}': transformed metadata missing or outdated"
+            )
+            return redirect(redirect_url)
+
         model.sp_status = EntityStatus.APPROVING.value
         db.session.commit()
         flash(f'Entity "{model.sp_name}" applied.', "success")
@@ -601,22 +613,33 @@ class MemberSpModelView(MemberBaseView):
         if model.sp_metadata_file:
             final_path = os.path.join(storage_root, model.sp_metadata_file)
             if os.path.exists(final_path):
-                if model.sp_edugain == EdugainStatus.ALREADY_IN.value:
-                    # ALREADY_IN: just copy as transformed
-                    transformed_path = final_path.replace(".xml", "-transformed.xml")
-                    shutil.copy(final_path, transformed_path)
-                    logger.info(
-                        f"[SP] Created transformed metadata copy for eduGAIN entity "
-                        f"{model.sp_entityid}"
+                try:
+                    if model.sp_edugain == EdugainStatus.ALREADY_IN.value:
+                        # ALREADY_IN: just copy as transformed
+                        transformed_path = final_path.replace(
+                            ".xml", "-transformed.xml"
+                        )
+                        shutil.copy(final_path, transformed_path)
+                        logger.info(
+                            f"[SP] Created transformed metadata copy for eduGAIN entity "
+                            f"{model.sp_entityid}"
+                        )
+                    else:
+                        # Normal mode: run full transformation
+                        MetadataService.safe_transform(
+                            entity_type="sp",
+                            entity_id=model.sp_id,
+                            original_path=final_path,
+                            organization_id=model.organization_id,
+                            raise_on_error=True,
+                        )
+                except Exception as exc:
+                    flash(f"Failed to transform metadata: {exc}", "error")
+                    logger.exception(
+                        f"[SP] Failed to prepare transformed metadata for SP "
+                        f"#{model.sp_id} '{model.sp_name}': {exc}"
                     )
-                else:
-                    # Normal mode: run full transformation
-                    MetadataService.safe_transform(
-                        entity_type="sp",
-                        entity_id=model.sp_id,
-                        original_path=final_path,
-                        organization_id=model.organization_id,
-                    )
+                    return
 
         # Regenerate federation metadata (only beta)
         self._regenerate_metadata_beta()

@@ -4,6 +4,7 @@ from flask import abort, current_app, request, flash
 from flask_security import current_user
 from markupsafe import Markup, escape
 from app.models import Idp, Sp
+from app.models.edugain_status import EdugainStatus
 from app.models.entity_status import EntityStatus
 from app.models.organization_type import OrganizationType
 from app.services.metadata import MetadataService
@@ -121,27 +122,63 @@ class MemberOrganizationModelView(MemberBaseView):
         storage_root = current_app.config["STORAGE_ROOT"]
 
         # ----- Update Metadata -----
+        transform_errors = []
         idps = Idp.query.filter_by(organization_id=model.organization_id).all()
         for idp in idps:
-            if idp.idp_metadata_file:
-                MetadataService.safe_transform(
-                    entity_type="idp",
-                    entity_id=idp.idp_id,
-                    original_path=os.path.join(storage_root, idp.idp_metadata_file),
-                    organization_id=model.organization_id,
-                )
+            if (
+                idp.idp_metadata_file
+                and idp.idp_edugain != EdugainStatus.ALREADY_IN.value
+            ):
+                try:
+                    MetadataService.safe_transform(
+                        entity_type="idp",
+                        entity_id=idp.idp_id,
+                        original_path=os.path.join(storage_root, idp.idp_metadata_file),
+                        organization_id=model.organization_id,
+                        raise_on_error=True,
+                    )
+                except Exception as exc:
+                    transform_errors.append(
+                        f"IdP #{idp.idp_id} ({idp.idp_entityid}): {exc}"
+                    )
         sps = Sp.query.filter_by(organization_id=model.organization_id).all()
         for sp in sps:
-            if sp.sp_metadata_file:
-                MetadataService.safe_transform(
-                    entity_type="sp",
-                    entity_id=sp.sp_id,
-                    original_path=os.path.join(storage_root, sp.sp_metadata_file),
-                    organization_id=model.organization_id,
-                )
+            if (
+                sp.sp_metadata_file
+                and sp.sp_edugain != EdugainStatus.ALREADY_IN.value
+            ):
+                try:
+                    MetadataService.safe_transform(
+                        entity_type="sp",
+                        entity_id=sp.sp_id,
+                        original_path=os.path.join(storage_root, sp.sp_metadata_file),
+                        organization_id=model.organization_id,
+                        raise_on_error=True,
+                    )
+                except Exception as exc:
+                    transform_errors.append(
+                        f"SP #{sp.sp_id} ({sp.sp_entityid}): {exc}"
+                    )
+
+        if transform_errors:
+            error_text = "; ".join(transform_errors)
+            flash(
+                "Organization was updated, but metadata transformation failed for: "
+                f"{error_text}. Federation metadata was not regenerated.",
+                "error",
+            )
+            logger.error(
+                "[Metadata] Organization #%s transformation failed: %s",
+                model.organization_id,
+                error_text,
+            )
+            return
+
         self._regenerate_metadata()
 
         flash(
-            "Organization configuration has been updated. All entities in this organization will automatically re-transform in the background. Federation metadata will be regenerated automatically after completion.",
+            "Organization configuration has been updated. All entities in this "
+            "organization have been re-transformed and federation metadata has "
+            "been regenerated.",
             "info",
         )

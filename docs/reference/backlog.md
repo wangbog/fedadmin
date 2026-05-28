@@ -59,12 +59,16 @@ Use the official Flask-Security guide for the complete template list, subject co
 
 ## 4. Synchronous Metadata Transformation and Regeneration
 
-When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates the federation metadata automatically after each operation. 
+When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates federation metadata as part of the request flow.
 
-When member organization or federation information is modified, the system synchronously transforms all entities belonging to that member organization or federation and regenerates the federation metadata automatically. 
+Entity create/edit operations must produce a transformed metadata file before beta metadata is regenerated. If transformation fails, the user sees an error and metadata regeneration is skipped.
+
+Before an entity can be submitted for approval, FedAdmin checks that its transformed metadata file exists and is at least as new as the uploaded source metadata. This prevents an entity from entering approval with missing or stale transformed metadata.
+
+When member organization or federation information is modified, the system synchronously re-transforms the affected entities except eduGAIN `ALREADY_IN` records, and regenerates federation metadata only if all transformations succeed. If any entity fails, the UI reports the failed entities and metadata regeneration is skipped.
 
 **Potential Improvement:**
-While synchronous transformation and regeneration ensures that metadata is always up-to-date, it may have performance implications for federations with many entities. Consider implementing asynchronous processing.
+Synchronous transformation and regeneration gives immediate feedback and avoids hidden failures, but it may have performance implications for federations with many entities. Consider implementing asynchronous processing with equivalent failure reporting and publication safeguards.
 
 This would improve system responsiveness, especially during bulk updates or when working with large federations.
 

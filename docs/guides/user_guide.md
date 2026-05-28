@@ -113,6 +113,7 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Navigate to `Member Admin/IdP` page
 - Click "Submit for approval" button
 - IdP entity status changes from `INIT` to `APPROVING`
+- Submission requires a current transformed metadata file. If the transformed metadata is missing or outdated, edit and save the entity first, then submit it again.
 - **Note**: IdP entities in `APPROVING` status can be withdrawn back to `INIT` status using the "Cancel application" button
 
 ### 5.3 Approve/Reject (Federation Administrators)
@@ -143,3 +144,4 @@ The following applies to both Identity Provider and Service Provider management:
 - `INIT` and `APPROVING` status IdP/SP entities are included in `fed-metadata-beta.xml` for testing and validation
 - `READY` status IdP/SP entities are included in `fed-metadata.xml` for production use
 - `READY` status IdP/SP entities with `idp_edugain` or `sp_edugain` set to `YES` are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
+- When an entity is created or edited, FedAdmin transforms its metadata before regenerating beta metadata. If transformation fails, the entity is saved but beta metadata is not regenerated until the metadata issue is corrected and the entity is saved again.

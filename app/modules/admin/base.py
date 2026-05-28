@@ -224,9 +224,9 @@ class BaseAdminView(ModelView):
             statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
         )
 
-    def _retransform_all_entities(self):
+    def _retransform_all_entities(self, raise_on_error=False):
         """Re-transform all entities metadata synchronously."""
-        MetadataService.safe_retransform_all()
+        return MetadataService.safe_retransform_all(raise_on_error=raise_on_error)
 
     def _format_enum(self, value, enum_class):
         """Format enum value: convert numeric to name, return empty string for None."""

@@ -64,6 +64,21 @@ class MemberBaseView(BaseAdminView):
         if not form.security_contact_name.data:
             form.security_contact_name.data = current_user.username
 
+    def _has_current_transformed_metadata(self, model):
+        """Return True when the entity has an up-to-date transformed metadata file."""
+        metadata_attr = f"{model.entity_type}_metadata_file"
+        metadata_file = getattr(model, metadata_attr, None)
+        if not metadata_file:
+            return False
+
+        storage_root = current_app.config["STORAGE_ROOT"]
+        original_path = os.path.join(storage_root, metadata_file)
+        transformed_path = original_path.replace(".xml", "-transformed.xml")
+        if not os.path.isfile(original_path) or not os.path.isfile(transformed_path):
+            return False
+
+        return os.path.getmtime(transformed_path) >= os.path.getmtime(original_path)
+
     def _handle_edugain_already_in(self, model, metadata_namegen):
         """Common handler for eduGAIN ALREADY_IN mode: fetch metadata, save temp file"""
         entity_id_attr = model.entity_type + "_entityid"

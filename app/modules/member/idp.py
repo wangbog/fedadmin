@@ -255,6 +255,18 @@ class MemberIdpModelView(MemberBaseView):
             )
             return redirect(redirect_url)
 
+        if not self._has_current_transformed_metadata(model):
+            flash(
+                "Transformed metadata is missing or outdated. Please edit and save this entity again before submitting.",
+                "error",
+            )
+            logger.warning(
+                f"[{client_ip}] [APPLY FAILED] - User "
+                f"{current_user.id}({current_user.email}) failed to apply IdP "
+                f"#{model.idp_id} '{model.idp_name}': transformed metadata missing or outdated"
+            )
+            return redirect(redirect_url)
+
         model.idp_status = EntityStatus.APPROVING.value
         db.session.commit()
         flash(f'Entity "{model.idp_name}" applied.', "success")
@@ -605,22 +617,33 @@ class MemberIdpModelView(MemberBaseView):
         if model.idp_metadata_file:
             final_path = os.path.join(storage_root, model.idp_metadata_file)
             if os.path.exists(final_path):
-                if model.idp_edugain == EdugainStatus.ALREADY_IN.value:
-                    # ALREADY_IN: just copy as transformed
-                    transformed_path = final_path.replace(".xml", "-transformed.xml")
-                    shutil.copy(final_path, transformed_path)
-                    logger.info(
-                        f"[IdP] Created transformed metadata copy for eduGAIN entity "
-                        f"{model.idp_entityid}"
+                try:
+                    if model.idp_edugain == EdugainStatus.ALREADY_IN.value:
+                        # ALREADY_IN: just copy as transformed
+                        transformed_path = final_path.replace(
+                            ".xml", "-transformed.xml"
+                        )
+                        shutil.copy(final_path, transformed_path)
+                        logger.info(
+                            f"[IdP] Created transformed metadata copy for eduGAIN entity "
+                            f"{model.idp_entityid}"
+                        )
+                    else:
+                        # Normal mode: run full transformation
+                        MetadataService.safe_transform(
+                            entity_type="idp",
+                            entity_id=model.idp_id,
+                            original_path=final_path,
+                            organization_id=model.organization_id,
+                            raise_on_error=True,
+                        )
+                except Exception as exc:
+                    flash(f"Failed to transform metadata: {exc}", "error")
+                    logger.exception(
+                        f"[IdP] Failed to prepare transformed metadata for IdP "
+                        f"#{model.idp_id} '{model.idp_name}': {exc}"
                     )
-                else:
-                    # Normal mode: run full transformation
-                    MetadataService.safe_transform(
-                        entity_type="idp",
-                        entity_id=model.idp_id,
-                        original_path=final_path,
-                        organization_id=model.organization_id,
-                    )
+                    return
 
         # Regenerate federation metadata (only beta)
         self._regenerate_metadata_beta()

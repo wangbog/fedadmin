@@ -76,9 +76,13 @@ The system regenerates the federation metadata aggregate both on-demand and on a
 
 ### Synchronous Regeneration
 
-When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates the federation metadata automatically after each operation. 
+When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates federation metadata as part of the request flow.
 
-When member organization or federation information is modified, the system synchronously transforms all entities belonging to that member organization or federation and regenerates the federation metadata automatically. 
+Entity create/edit operations must complete transformation before beta metadata is regenerated. If transformation fails, the user sees an error and beta regeneration is skipped.
+
+Before an entity can be submitted for approval, FedAdmin checks that its transformed metadata file exists and is not older than the uploaded source metadata. This prevents approval from proceeding with missing or stale transformed metadata.
+
+When member organization or federation information is modified, the system synchronously re-transforms the affected entities except eduGAIN `ALREADY_IN` records, and regenerates federation metadata only if every transformation succeeds. If any transformation fails, the failed entities are reported and regeneration is skipped.
 
 ### Scheduled Regeneration
 

@@ -106,12 +106,24 @@ class FederationFederationModelView(FederationBaseView):
                 f"{current_user.email}) updated federation configuration"
             )
 
-        # re-transform all entities, and regenerate metadata
-        self._retransform_all_entities()
+        # Re-transform all entities, and regenerate metadata.
+        try:
+            self._retransform_all_entities(raise_on_error=True)
+        except Exception as exc:
+            flash(
+                "Federation registration configuration was updated, but metadata "
+                f"re-transformation failed: {exc}. Federation metadata was not regenerated.",
+                "error",
+            )
+            logger.exception(
+                "[Metadata] Federation configuration re-transformation failed: %s",
+                exc,
+            )
+            return
 
         flash(
             "Federation registration configuration has been updated. "
-            "All entities will automatically re-transform in the background. "
-            "Federation metadata will be regenerated automatically after completion.",
+            "All entities have been re-transformed and federation metadata has "
+            "been regenerated.",
             "info",
         )
