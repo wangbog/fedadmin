@@ -2,7 +2,7 @@ import pytest
 
 from app import create_app
 from app.extensions import db
-from app.models import Organization, Role, Sp, User
+from app.models import Idp, Organization, Role, Sp, User
 from app.models.edugain_status import EdugainStatus
 from app.models.entity_status import EntityStatus
 from app.models.organization_type import OrganizationType
@@ -83,7 +83,9 @@ def make_sp(
         safe_suffix = (
             metadata_file.replace("/", "-").replace("\\", "-").replace(".", "-")
         )
-        entity_id = f"https://sp{organization.organization_id}.example.org/{safe_suffix}"
+        entity_id = (
+            f"https://sp{organization.organization_id}.example.org/{safe_suffix}"
+        )
 
     sp = Sp(
         sp_status=status,
@@ -102,6 +104,40 @@ def make_sp(
     db.session.add(sp)
     db.session.flush()
     return sp
+
+
+def make_idp(
+    organization,
+    metadata_file,
+    status=EntityStatus.INIT.value,
+    entity_id=None,
+):
+    if entity_id is None:
+        safe_suffix = (
+            metadata_file.replace("/", "-").replace("\\", "-").replace(".", "-")
+        )
+        entity_id = (
+            f"https://idp{organization.organization_id}.example.org/{safe_suffix}"
+        )
+
+    idp = Idp(
+        idp_status=status,
+        idp_name=f"{organization.organization_name} IdP",
+        idp_description="Identity provider for tests",
+        idp_scope="example.org",
+        idp_entityid=entity_id,
+        idp_metadata_file=metadata_file,
+        idp_logo="https://example.org/logo.png",
+        idp_edugain=EdugainStatus.YES.value,
+        contact_technical_name="Tech Contact",
+        contact_technical_email="tech@example.org",
+        security_contact_name="Security Contact",
+        security_contact_email="security@example.org",
+        organization_id=organization.organization_id,
+    )
+    db.session.add(idp)
+    db.session.flush()
+    return idp
 
 
 def login_client(client, user):

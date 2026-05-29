@@ -2,7 +2,10 @@ from app.utils.url_helpers import is_valid_http_url, safe_redirect_target
 
 
 def test_safe_redirect_target_allows_local_absolute_path():
-    assert safe_redirect_target("/federation/?page=1", "/fallback") == "/federation/?page=1"
+    assert (
+        safe_redirect_target("/federation/?page=1", "/fallback")
+        == "/federation/?page=1"
+    )
 
 
 def test_safe_redirect_target_rejects_external_urls():

@@ -151,6 +151,23 @@ For development, run scheduled commands manually when needed:
   docker compose run --rm web pytest
   ```
 
+- **Run lint and formatting checks**:
+
+  GitHub Actions runs the same checks on every push and pull request.
+
+  ```bash
+  docker compose exec --user fedadmin web ruff check --no-cache .
+  docker compose exec --user fedadmin web ruff format --check --no-cache tests
+  ```
+
+  To run these checks automatically before commits, install the pre-commit hooks on the machine where you run `git commit`:
+
+  ```bash
+  pre-commit install
+  ```
+
+  If you run `pre-commit install` inside the Docker container, the hook file is still written to `.git/hooks/pre-commit` through the bind mount. However, if you later run `git commit` from the Windows host, that hook may reference container-side paths or executables and fail. Install pre-commit in the same environment where you run `git commit`. If you commit from inside the development container, run the install command inside that container instead.
+
 - **Change environment variables**:
 
   ```bash

@@ -27,5 +27,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      - name: Run lint
+        run: ruff check --no-cache .
+
+      - name: Check test formatting
+        run: ruff format --check --no-cache tests
+
       - name: Run tests
         run: pytest
