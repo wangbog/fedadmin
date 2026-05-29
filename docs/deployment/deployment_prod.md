@@ -63,15 +63,10 @@ The container includes the Linux system packages and Python dependencies require
 
    ```bash
    sudo -u fedadmin bash
+
+   # Create bind mount directories
    cd /data/fedadmin
-   ```
-
-   Create bind mount directories and set secure permissions:
-
-   ```bash
    mkdir -p data/instance data/storage data/logs
-   # Restrict data directories to fedadmin owner/group
-   chmod 750 -R data
    ```
 
 2. **Configure Nginx Reverse Proxy**
@@ -291,7 +286,7 @@ The cron log only contains cron command output. Application logs produced by the
 - **Stop the container**:
 
   ```bash
-  docker compose down
+  docker compose -f docker-compose.prod.yml down
   ```
 
 ## Troubleshooting
