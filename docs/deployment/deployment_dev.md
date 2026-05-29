@@ -145,6 +145,12 @@ For development, run scheduled commands manually when needed:
   docker compose exec --user fedadmin web pytest
   ```
 
+  If the development container is not already running, use:
+
+  ```bash
+  docker compose run --rm web pytest
+  ```
+
 - **Change environment variables**:
 
   ```bash

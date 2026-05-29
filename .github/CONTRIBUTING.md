@@ -31,7 +31,15 @@ Run tests in the development container:
 docker compose exec --user fedadmin web pytest
 ```
 
+If the development container is not already running, use:
+
+```bash
+docker compose run --rm web pytest
+```
+
 For host-based development or CI, install `requirements-dev.txt` and then run `pytest`.
+
+GitHub Actions runs the same pytest suite on every push and pull request.
 
 ## Pull Requests
 
