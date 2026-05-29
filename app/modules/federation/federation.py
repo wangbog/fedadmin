@@ -1,8 +1,8 @@
 from flask import request, abort, flash
-from urllib.parse import urlparse
 from flask_security import current_user
 from markupsafe import Markup, escape
 from app.utils.logging_helpers import logger, get_client_ip
+from app.utils.url_helpers import is_valid_http_url
 from .base import FederationBaseView
 
 
@@ -76,10 +76,8 @@ class FederationFederationModelView(FederationBaseView):
         if not model.registration_authority or not model.registration_authority.strip():
             raise ValueError("Registration Authority is required.")
 
-        # MDRPI spec: registrationAuthority MUST be a valid URI
-        url_check = urlparse(model.registration_authority)
-        if not url_check.scheme or not url_check.netloc:
-            raise ValueError("Registration Authority must be a valid URI format.")
+        if not is_valid_http_url(model.registration_authority):
+            raise ValueError("Registration Authority must be a valid HTTP(S) URL.")
 
         if (
             not model.registration_policy_url
@@ -87,10 +85,8 @@ class FederationFederationModelView(FederationBaseView):
         ):
             raise ValueError("Registration Policy URL is required.")
 
-        # MDRPI spec: registrationPolicy MUST be a valid URL
-        url_check = urlparse(model.registration_policy_url)
-        if not url_check.scheme or not url_check.netloc:
-            raise ValueError("Registration Policy URL must be a valid URL format.")
+        if not is_valid_http_url(model.registration_policy_url):
+            raise ValueError("Registration Policy URL must be a valid HTTP(S) URL.")
 
         if not model.publisher or not model.publisher.strip():
             raise ValueError("Publisher is required.")

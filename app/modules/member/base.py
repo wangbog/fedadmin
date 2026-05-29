@@ -6,6 +6,7 @@ from sqlalchemy.orm import joinedload
 import re
 from app.modules.admin.base import BaseAdminView
 from app.services.metadata import MetadataService
+from app.utils.url_helpers import is_valid_http_url
 
 
 class MemberBaseView(BaseAdminView):
@@ -187,9 +188,8 @@ class MemberBaseView(BaseAdminView):
         if not logo_value or not logo_value.strip():
             raise ValueError(f"Entity logo URL is required.")
 
-        url_regex = r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$"
-        if not re.match(url_regex, logo_value):
-            raise ValueError(f"Invalid entity logo URL format.")
+        if not is_valid_http_url(logo_value):
+            raise ValueError("Invalid entity logo URL format.")
 
     def _validate_entity_edugain(self, model):
         """

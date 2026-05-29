@@ -8,6 +8,12 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
 build/
 develop-eggs/
 dist/
@@ -42,8 +48,11 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
-# Storage files (user uploads)
+# Runtime data and storage files
+data/
+instance/
 app/storage/
+logs/
 
 # Environment variable files
 .env
@@ -58,6 +67,7 @@ logs/
 *.pid
 *.seed
 *.pid.lock
+docker-compose.override.yml
 *.zip
 *.tar.gz
 *.rar

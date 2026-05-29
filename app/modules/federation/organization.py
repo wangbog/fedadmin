@@ -1,7 +1,6 @@
 import os
 from flask import flash, request, redirect, current_app
 from flask_security import current_user
-from urllib.parse import urlparse
 from markupsafe import Markup, escape
 from flask_admin import expose
 from flask_wtf.csrf import generate_csrf
@@ -13,6 +12,7 @@ from app.models.organization_type import OrganizationType
 from app.extensions import db
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
+from app.utils.url_helpers import form_redirect_target, is_valid_http_url
 from app.services.metadata import MetadataService
 from app.utils.role_helpers import assign_user_roles
 from .base import FederationBaseView
@@ -116,7 +116,7 @@ class FederationOrganizationModelView(FederationBaseView):
     @csrf_protected
     def delete(self):
         """Custom delete endpoint for organizations (cannot delete current user's organization)."""
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -223,9 +223,7 @@ class FederationOrganizationModelView(FederationBaseView):
         if not model.organization_url or not model.organization_url.strip():
             raise ValueError("Organization URL is required.")
 
-        # URL format validation
-        url_check = urlparse(model.organization_url)
-        if not url_check.scheme or not url_check.netloc:
+        if not is_valid_http_url(model.organization_url):
             raise ValueError("Organization URL must be a valid URL format.")
 
         if not is_created:

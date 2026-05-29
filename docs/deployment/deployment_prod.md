@@ -305,7 +305,21 @@ The cron log only contains cron command output. Application logs produced by the
    docker compose -f docker-compose.prod.yml up --build -d
    ```
 
-3. **Run Flask commands manually inside the container**
+3. **Build the image without using cache**
+
+   Use this when validating dependency or Dockerfile changes, or when a cached layer may hide a build problem.
+
+   ```bash
+   docker compose -f docker-compose.prod.yml build --no-cache web
+   ```
+
+   This only builds the image. Start or recreate the container afterwards if needed:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+4. **Run Flask commands manually inside the container**
 
    ```bash
    docker compose -f docker-compose.prod.yml exec --user fedadmin web bash

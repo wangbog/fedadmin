@@ -20,9 +20,12 @@ from app.utils.file_helpers import (
     sp_metadata_namegen,
     move_uploaded_file,
     validate_xml,
+    metadata_file_paths,
+    delete_files_if_exist,
 )
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
+from app.utils.url_helpers import form_redirect_target
 from .base import MemberBaseView
 
 
@@ -219,7 +222,7 @@ class MemberSpModelView(MemberBaseView):
     @expose("/apply/", methods=["POST"])
     @csrf_protected
     def apply(self):
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -280,7 +283,7 @@ class MemberSpModelView(MemberBaseView):
     @expose("/cancel/", methods=["POST"])
     @csrf_protected
     def cancel(self):
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -329,7 +332,7 @@ class MemberSpModelView(MemberBaseView):
     @expose("/withdraw/", methods=["POST"])
     @csrf_protected
     def withdraw(self):
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -399,7 +402,7 @@ class MemberSpModelView(MemberBaseView):
     @csrf_protected
     def delete(self):
         """Custom delete endpoint for INIT status entities."""
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -435,26 +438,13 @@ class MemberSpModelView(MemberBaseView):
             )
             return redirect(redirect_url)
 
-        # Delete associated files before deleting the model
         storage_root = current_app.config["STORAGE_ROOT"]
-        if model.sp_metadata_file:
-            meta_path = os.path.join(storage_root, model.sp_metadata_file)
-            if os.path.exists(meta_path):
-                try:
-                    os.remove(meta_path)
-                except OSError:
-                    pass
-            transformed = model.sp_metadata_file.replace(".xml", "-transformed.xml")
-            trans_path = os.path.join(storage_root, transformed)
-            if os.path.exists(trans_path):
-                try:
-                    os.remove(trans_path)
-                except OSError:
-                    pass
+        files_to_delete = metadata_file_paths(storage_root, model.sp_metadata_file)
 
         entity_name = model.sp_name
         db.session.delete(model)
         db.session.commit()
+        delete_files_if_exist(files_to_delete)
         logger.info(
             f"[{client_ip}] [DELETE] - User "
             f"{current_user.id}({current_user.email}) deleted SP "

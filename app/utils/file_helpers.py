@@ -121,6 +121,33 @@ def move_uploaded_file(
     return final_relative
 
 
+def metadata_file_paths(storage_root: str, metadata_relative: str) -> List[str]:
+    """Return absolute original and transformed metadata paths for cleanup."""
+    if not metadata_relative:
+        return []
+
+    paths = []
+    for relative_path in (
+        metadata_relative,
+        metadata_relative.replace(".xml", "-transformed.xml"),
+    ):
+        abs_path = os.path.realpath(os.path.join(storage_root, relative_path))
+        if is_within_directory(storage_root, abs_path):
+            paths.append(abs_path)
+
+    return paths
+
+
+def delete_files_if_exist(paths: List[str]) -> None:
+    """Best-effort deletion for already-committed file cleanup."""
+    for path in paths:
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+
 def validate_mime_type(
     file_storage: FileStorage,
     allowed_mime_types: List[str],

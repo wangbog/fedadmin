@@ -13,6 +13,7 @@ from app.utils.account_helpers import (
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
 from app.utils.role_helpers import assign_user_roles
+from app.utils.url_helpers import form_redirect_target
 from .base import FederationBaseView
 
 
@@ -96,7 +97,7 @@ class FederationUserModelView(FederationBaseView):
     @csrf_protected
     def delete(self):
         """Custom delete endpoint for users (cannot delete current user)."""
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:

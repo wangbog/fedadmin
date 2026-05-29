@@ -1,17 +1,57 @@
-venv/
+# Python caches and build artifacts
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+wheels/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Runtime data and generated files
 data/
 instance/
 app/storage/
+logs/
+*.log
+*.pid
+*.pid.lock
+
+# Environment files and secrets
 .env
 .env.*
+
+# Git and editor files
 .git/
 .gitignore
+.DS_Store
+Thumbs.db
+.idea/
+.devcontainer/
+.vscode/
+
+# Documentation and repository metadata not needed in runtime images
 README.md
 docs/
+.github/
+tests/
+CHANGELOG.md
+
+# Compose and Docker source files are not needed inside the image
 docker-compose*.yml
 Dockerfile
 Dockerfile.prod
-.devcontainer/
-.vscode/

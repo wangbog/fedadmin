@@ -21,8 +21,8 @@ RUN mkdir -p /var/log/fedadmin /var/run/pyff \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 COPY . .
 
@@ -31,5 +31,5 @@ RUN chown -R fedadmin:fedadmin /app
 
 EXPOSE 5000
 
-# Fix ownership at startup (volume mount may override) and run as fedadmin
-CMD ["sh", "-c", "chown -R fedadmin:fedadmin /app && su fedadmin -s /bin/bash -c 'cd /app && flask run --host=0.0.0.0'"]
+# Fix writable runtime directories at startup. Source bind mounts are left untouched.
+CMD ["sh", "-c", "mkdir -p /app/instance /app/app/storage /var/log/fedadmin /var/run/pyff && chown -R fedadmin:fedadmin /app/instance /app/app/storage /var/log/fedadmin /var/run/pyff && su fedadmin -s /bin/bash -c 'cd /app && flask run --host=0.0.0.0'"]

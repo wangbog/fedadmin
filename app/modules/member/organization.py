@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlparse
 from flask import abort, current_app, request, flash
 from flask_security import current_user
 from markupsafe import Markup, escape
@@ -9,6 +8,7 @@ from app.models.entity_status import EntityStatus
 from app.models.organization_type import OrganizationType
 from app.services.metadata import MetadataService
 from app.utils.logging_helpers import logger, get_client_ip
+from app.utils.url_helpers import is_valid_http_url
 from .base import MemberBaseView
 
 
@@ -102,9 +102,7 @@ class MemberOrganizationModelView(MemberBaseView):
             if not model.organization_url or not model.organization_url.strip():
                 raise ValueError("Organization URL is required.")
 
-            # URL format validation
-            url_check = urlparse(model.organization_url)
-            if not url_check.scheme or not url_check.netloc:
+            if not is_valid_http_url(model.organization_url):
                 raise ValueError("Organization URL must be a valid URL format.")
 
     def after_model_change(self, form, model, is_created):

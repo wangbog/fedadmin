@@ -6,6 +6,7 @@ from markupsafe import Markup, escape
 from app.extensions import db
 from app.utils.security_helpers import csrf_protected
 from app.utils.logging_helpers import logger, get_client_ip
+from app.utils.url_helpers import form_redirect_target
 from app.modules.admin.base import BaseAdminView
 from app.models.entity_status import EntityStatus
 from app.models.edugain_status import EdugainStatus
@@ -144,7 +145,7 @@ class FederationSpModelView(FederationBaseView):
     @expose("/approve/", methods=["POST"])
     @csrf_protected
     def approve(self):
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:
@@ -198,7 +199,7 @@ class FederationSpModelView(FederationBaseView):
     @expose("/reject/", methods=["POST"])
     @csrf_protected
     def reject(self):
-        redirect_url = request.form.get("url") or self.get_url(".index_view")
+        redirect_url = form_redirect_target(self.get_url(".index_view"))
         client_ip = get_client_ip()
         record_id = request.form.get("id")
         if not record_id:

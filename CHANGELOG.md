@@ -16,3 +16,6 @@ No unreleased changes yet.
 - Added Docker-based development and production deployment documentation.
 - Added documentation for user workflows, scheduled tasks, storage layout, backlog, known issues, and glossary.
 - Added MIT license, security policy, contribution guidelines, and changelog.
+- Added initial GitHub Actions test workflow and helper unit tests.
+- Added development dependency file for local tests.
+- Hardened URL validation, custom action redirects, and metadata file cleanup behavior.

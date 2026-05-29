@@ -137,6 +137,14 @@ For development, run scheduled commands manually when needed:
   docker compose up --build -d
   ```
 
+- **Run tests**:
+
+  The development image installs `requirements-dev.txt`, so pytest runs inside the container. The host machine does not need pytest installed.
+
+  ```bash
+  docker compose exec --user fedadmin web pytest
+  ```
+
 - **Change environment variables**:
 
   ```bash
@@ -178,7 +186,21 @@ For development, run scheduled commands manually when needed:
    docker compose up --build -d
    ```
 
-3. **Run Flask commands manually inside the container**
+3. **Build the image without using cache**
+
+   Use this when validating dependency or Dockerfile changes, or when a cached layer may hide a build problem.
+
+   ```bash
+   docker compose build --no-cache web
+   ```
+
+   This only builds the image. Start the container afterwards if needed:
+
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Run Flask commands manually inside the container**
 
    ```bash
    docker compose exec --user fedadmin web bash

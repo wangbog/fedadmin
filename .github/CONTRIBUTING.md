@@ -4,8 +4,8 @@ Thanks for your interest in FedAdmin.
 
 ## Before You Start
 
-- Read `README.md`, `docs/reference/backlog.md`, and `docs/reference/issues.md`.
-- For deployment behavior, check `docs/deployment/deployment_dev.md` and `docs/deployment/deployment_prod.md`.
+- Read `../README.md`, `../docs/reference/backlog.md`, and `../docs/reference/issues.md`.
+- For deployment behavior, check `../docs/deployment/deployment_dev.md` and `../docs/deployment/deployment_prod.md`.
 - Do not commit `.env`, database files, logs, private keys, or generated storage files.
 
 ## Development
@@ -13,7 +13,7 @@ Thanks for your interest in FedAdmin.
 Use the development deployment guide to build and run the project locally:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
 Useful commands:
@@ -25,6 +25,14 @@ docker compose exec --user fedadmin web flask init-db
 docker compose exec --user fedadmin web flask regenerate-metadata
 ```
 
+Run tests in the development container:
+
+```bash
+docker compose exec --user fedadmin web pytest
+```
+
+For host-based development or CI, install `requirements-dev.txt` and then run `pytest`.
+
 ## Pull Requests
 
 - Keep changes focused.
@@ -34,4 +42,4 @@ docker compose exec --user fedadmin web flask regenerate-metadata
 
 ## Security
 
-Please do not report vulnerabilities in public issues. See `SECURITY.md`.
+Please do not report vulnerabilities in public issues. See `.github/SECURITY.md`.
