@@ -74,6 +74,8 @@ Synchronous transformation and regeneration gives immediate feedback and avoids 
 
 This would improve system responsiveness, especially during bulk updates or when working with large federations.
 
+Another future improvement is to add an explicit metadata publication health state, such as `metadata_dirty`, `metadata_failed`, and the last successful generation timestamp. Some beta-only create, edit, and delete flows intentionally keep the business data change after a metadata regeneration failure and report the problem to the user. A visible state would make that degraded condition easier to monitor, retry, and operationally distinguish from successfully published metadata.
+
 **Implementation Considerations:**
 An asynchronous implementation should account for these constraints:
 
@@ -192,3 +194,12 @@ Future development should consider adding configurable multilingual metadata sup
 4. Localized SP information and privacy statement URLs
 5. Metadata transformation logic that emits multiple `xml:lang` variants instead of replacing all localized elements with English-only values
 6. Validation or warning checks for missing English or configured local-language variants
+
+## 7. Production Docker Image Slimming
+
+The current production Docker image installs build-time packages such as `build-essential` and `python3-dev` directly in the final runtime image. These packages are mainly needed while `pip install -r requirements.txt` builds Python packages with native extensions. The running application normally only needs runtime libraries.
+
+**Future Enhancement:**
+Consider converting `Dockerfile.prod` to a multi-stage build. The builder stage would install compilers, development headers, and Python wheels. The final stage would copy only installed Python packages, application code, and runtime system libraries.
+
+This would reduce image size and remove unnecessary compiler tooling from the production container. The change should be tested by building the production image, importing key dependencies such as `xmlsec`, `magic`, and `lxml`, running `pyff --version`, and starting Gunicorn with the production entry point.

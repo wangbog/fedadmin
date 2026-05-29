@@ -125,6 +125,18 @@ class ProductionConfig(Config):
     PERMANENT_SESSION_LIFETIME = 1800  # 30 minutes timeout
 
 
+class TestingConfig(Config):
+    TESTING = True
+    WTF_CSRF_ENABLED = False
+
+    SECRET_KEY = "test-secret-key"
+    SECURITY_PASSWORD_SALT = "test-password-salt"
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+
+    MAIL_SUPPRESS_SEND = True
+    SESSION_COOKIE_SECURE = False
+
+
 def validate_development_config(app):
     """Validate required development configuration items"""
     required_vars = {
@@ -159,5 +171,6 @@ def validate_production_config(app):
 config = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
+    "testing": TestingConfig,
     "default": DevelopmentConfig,
 }
