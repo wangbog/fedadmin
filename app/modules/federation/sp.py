@@ -167,13 +167,32 @@ class FederationSpModelView(FederationBaseView):
             )
             return redirect(redirect_url)
 
-        model.sp_status = EntityStatus.READY.value
-        db.session.commit()
-        flash(f'Entity "{model.sp_name}" approved.', "success")
+        entity_id = model.sp_id
+        entity_name = model.sp_name
+        try:
+            model.sp_status = EntityStatus.READY.value
+            db.session.flush()
+            self._regenerate_metadata(raise_on_error=True)
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            flash(
+                f'Approval failed for "{entity_name}" because federation metadata '
+                "could not be regenerated. The entity remains pending approval. "
+                "Check the signing certificate, pyFF output, and server logs, then try again.",
+                "error",
+            )
+            logger.exception(
+                f"[{client_ip}] [APPROVE FAILED] - User "
+                f"{current_user.id}({current_user.email}) failed to approve SP "
+                f"#{entity_id} '{entity_name}': metadata regeneration failed - {exc}"
+            )
+            return redirect(redirect_url)
+
+        flash(f'Entity "{entity_name}" approved.', "success")
         logger.info(
-            f"[{client_ip}] [APPROVE] - User {current_user.id}({current_user.email}) approved SP #{model.sp_id} '{model.sp_name}'"
+            f"[{client_ip}] [APPROVE] - User {current_user.id}({current_user.email}) approved SP #{entity_id} '{entity_name}'"
         )
-        self._regenerate_metadata()
         return redirect(redirect_url)
 
     @expose("/reject/", methods=["POST"])

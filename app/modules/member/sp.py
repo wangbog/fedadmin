@@ -365,15 +365,34 @@ class MemberSpModelView(MemberBaseView):
             )
             return redirect(redirect_url)
 
-        model.sp_status = EntityStatus.INIT.value
-        db.session.commit()
-        flash(f'Entity "{model.sp_name}" withdrawn, now INIT.', "success")
+        entity_id = model.sp_id
+        entity_name = model.sp_name
+        try:
+            model.sp_status = EntityStatus.INIT.value
+            db.session.flush()
+            self._regenerate_metadata(raise_on_error=True)
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            flash(
+                f'Withdrawal failed for "{entity_name}" because federation metadata '
+                "could not be regenerated. The entity remains READY. "
+                "Please contact a federation administrator and try again after the metadata generation issue is fixed.",
+                "error",
+            )
+            logger.exception(
+                f"[{client_ip}] [WITHDRAW FAILED] - User "
+                f"{current_user.id}({current_user.email}) failed to withdraw SP "
+                f"#{entity_id} '{entity_name}': metadata regeneration failed - {exc}"
+            )
+            return redirect(redirect_url)
+
+        flash(f'Entity "{entity_name}" withdrawn, now INIT.', "success")
         logger.info(
             f"[{client_ip}] [WITHDRAW] - User "
             f"{current_user.id}({current_user.email}) withdrew SP "
-            f"#{model.sp_id} '{model.sp_name}'"
+            f"#{entity_id} '{entity_name}'"
         )
-        self._regenerate_metadata()
         return redirect(redirect_url)
 
     @expose("/delete/", methods=["POST"])
@@ -436,13 +455,28 @@ class MemberSpModelView(MemberBaseView):
         entity_name = model.sp_name
         db.session.delete(model)
         db.session.commit()
-        flash(f'Entity "{entity_name}" deleted.', "success")
         logger.info(
             f"[{client_ip}] [DELETE] - User "
             f"{current_user.id}({current_user.email}) deleted SP "
             f"#{record_id} '{entity_name}'"
         )
-        self._regenerate_metadata_beta()
+        try:
+            self._regenerate_metadata_beta(raise_on_error=True)
+        except Exception as exc:
+            flash(
+                f'Entity "{entity_name}" was deleted, but beta metadata could '
+                "not be regenerated. Please contact a federation administrator "
+                "to regenerate metadata after the generation issue is fixed.",
+                "error",
+            )
+            logger.exception(
+                f"[{client_ip}] [DELETE WARNING] - User "
+                f"{current_user.id}({current_user.email}) deleted SP "
+                f"#{record_id} '{entity_name}', but beta metadata regeneration failed - {exc}"
+            )
+            return redirect(redirect_url)
+
+        flash(f'Entity "{entity_name}" deleted.', "success")
         return redirect(redirect_url)
 
     def create_form(self, obj=None):
@@ -642,4 +676,17 @@ class MemberSpModelView(MemberBaseView):
                     return
 
         # Regenerate federation metadata (only beta)
-        self._regenerate_metadata_beta()
+        try:
+            self._regenerate_metadata_beta(raise_on_error=True)
+        except Exception as exc:
+            flash(
+                "Entity was saved, but beta metadata could not be regenerated. "
+                "Please fix the metadata generation issue, then edit and save this entity again, "
+                "or contact a federation administrator.",
+                "error",
+            )
+            logger.exception(
+                f"[SP] Failed to regenerate beta metadata after saving SP "
+                f"#{model.sp_id} '{model.sp_name}': {exc}"
+            )
+            return

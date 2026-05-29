@@ -91,7 +91,12 @@ class MetadataService:
 
     @classmethod
     def safe_regenerate(
-        cls, app=None, output_path_key=None, statuses=None, edugain_only=False
+        cls,
+        app=None,
+        output_path_key=None,
+        statuses=None,
+        edugain_only=False,
+        raise_on_error=False,
     ):
         """Safely regenerate federation metadata.
         - output_path_key: config key for output path (e.g., 'FEDERATION_METADATA_OUTPUT')
@@ -108,8 +113,12 @@ class MetadataService:
             logger.info(
                 f"[Metadata] Regeneration completed successfully: {output_path_key}"
             )
+            return True
         except Exception as e:
             logger.exception(f"[Metadata] Regeneration failed: {output_path_key} - {e}")
+            if raise_on_error:
+                raise
+            return False
 
     @classmethod
     def safe_retransform_all(cls, app=None, raise_on_error=False):
@@ -546,7 +555,9 @@ class MetadataService:
                 logger.warning(
                     "[Metadata] Another metadata regeneration is already in progress. Skipping."
                 )
-                return
+                raise RuntimeError(
+                    "Another metadata regeneration is already in progress."
+                )
 
             try:
                 output_path = self.app.config[output_path_key]

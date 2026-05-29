@@ -112,7 +112,9 @@ class FederationFederationModelView(FederationBaseView):
         except Exception as exc:
             flash(
                 "Federation registration configuration was updated, but metadata "
-                f"re-transformation failed: {exc}. Federation metadata was not regenerated.",
+                f"re-transformation or regeneration failed: {exc}. Federation metadata "
+                "was not regenerated. Check the signing certificate, pyFF output, and "
+                "server logs, then retry the federation configuration update.",
                 "error",
             )
             logger.exception(

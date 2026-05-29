@@ -201,27 +201,38 @@ class BaseAdminView(ModelView):
 
         return query
 
-    def _regenerate_metadata(self):
+    def _regenerate_metadata(self, raise_on_error=False):
         """Regenerate all federation metadata files synchronously."""
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
-            statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
-        )
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_OUTPUT",
-            statuses=[EntityStatus.READY.value],
-        )
-        MetadataService.safe_regenerate(
-            output_path_key="FEDERATION_METADATA_EDUGAIN_OUTPUT",
-            statuses=[EntityStatus.READY.value],
-            edugain_only=True,
-        )
+        targets = [
+            {
+                "output_path_key": "FEDERATION_METADATA_BETA_OUTPUT",
+                "statuses": [EntityStatus.INIT.value, EntityStatus.APPROVING.value],
+            },
+            {
+                "output_path_key": "FEDERATION_METADATA_OUTPUT",
+                "statuses": [EntityStatus.READY.value],
+            },
+            {
+                "output_path_key": "FEDERATION_METADATA_EDUGAIN_OUTPUT",
+                "statuses": [EntityStatus.READY.value],
+                "edugain_only": True,
+            },
+        ]
+        for target in targets:
+            result = MetadataService.safe_regenerate(
+                raise_on_error=raise_on_error,
+                **target,
+            )
+            if not result:
+                return False
+        return True
 
-    def _regenerate_metadata_beta(self):
+    def _regenerate_metadata_beta(self, raise_on_error=False):
         """Regenerate only the beta metadata file synchronously."""
-        MetadataService.safe_regenerate(
+        return MetadataService.safe_regenerate(
             output_path_key="FEDERATION_METADATA_BETA_OUTPUT",
             statuses=[EntityStatus.INIT.value, EntityStatus.APPROVING.value],
+            raise_on_error=raise_on_error,
         )
 
     def _retransform_all_entities(self, raise_on_error=False):

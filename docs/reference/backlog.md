@@ -59,7 +59,7 @@ Use the official Flask-Security guide for the complete template list, subject co
 
 ## 4. Synchronous Metadata Transformation and Regeneration
 
-When entities are created, updated, or deleted through the admin interface, the system synchronously transforms and regenerates federation metadata as part of the request flow.
+FedAdmin performs metadata transformation and federation metadata regeneration synchronously as part of the request flow.
 
 Entity create/edit operations must produce a transformed metadata file before beta metadata is regenerated. If transformation fails, the user sees an error and metadata regeneration is skipped.
 
@@ -67,13 +67,15 @@ Before an entity can be submitted for approval, FedAdmin checks that its transfo
 
 When member organization or federation information is modified, the system synchronously re-transforms the affected entities except eduGAIN `ALREADY_IN` records, and regenerates federation metadata only if all transformations succeed. If any entity fails, the UI reports the failed entities and metadata regeneration is skipped.
 
+Approval and withdrawal require successful production metadata regeneration before the status change is committed. If production metadata cannot be regenerated, the entity remains in its previous status. Beta-only create, edit, and delete operations report regeneration failures to the user and require beta metadata to be regenerated after the issue is fixed.
+
 **Potential Improvement:**
 Synchronous transformation and regeneration gives immediate feedback and avoids hidden failures, but it may have performance implications for federations with many entities. Consider implementing asynchronous processing with equivalent failure reporting and publication safeguards.
 
 This would improve system responsiveness, especially during bulk updates or when working with large federations.
 
-**Technical Background:**
-We initially implemented APScheduler (with MemoryJobStore) for async processing but reverted to synchronous execution due to these challenges:
+**Implementation Considerations:**
+An asynchronous implementation should account for these constraints:
 
 1. **APScheduler pkg_resources Deprecation Warning**
    
@@ -83,11 +85,11 @@ We initially implemented APScheduler (with MemoryJobStore) for async processing 
    /usr/local/lib/python3.12/site-packages/apscheduler/__init__.py:1: UserWarning: pkg_resources is deprecated as an API... The pkg_resources package is slated for removal as early as 2025-11-30.
    ```
 
-   APScheduler will fail after `pkg_resources` is removed (2025-11-30). Upgrading APScheduler would break pyFF's functionality.
+   APScheduler will fail after `pkg_resources` is removed (2025-11-30). Upgrading APScheduler may affect pyFF compatibility.
 
 2. **Production Environment Multi-process Constraints**
    
-   APScheduler works in single-process development but fails in Gunicorn's multi-production setup. Alternative solutions (Redis, database-backed schedulers, Celery) all introduce additional infrastructure dependencies beyond our lightweight architecture.
+   In-process schedulers are not suitable for Gunicorn-style multi-process production deployments. Queue-based alternatives such as Redis-backed workers, database-backed schedulers, or Celery introduce additional infrastructure dependencies beyond the current lightweight architecture.
 
 ## 5. Placeholder Federation Metadata Requirement
 

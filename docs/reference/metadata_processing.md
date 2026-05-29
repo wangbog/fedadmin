@@ -84,6 +84,8 @@ Before an entity can be submitted for approval, FedAdmin checks that its transfo
 
 When member organization or federation information is modified, the system synchronously re-transforms the affected entities except eduGAIN `ALREADY_IN` records, and regenerates federation metadata only if every transformation succeeds. If any transformation fails, the failed entities are reported and regeneration is skipped.
 
+Metadata regeneration failures are reported to the user. Approval and withdrawal operations keep the entity in its original status if production metadata cannot be regenerated. For beta-only changes such as entity create, edit, or delete, the data change may already be saved, but the user is told that beta metadata was not regenerated and should retry after the generation issue is fixed or contact a federation administrator.
+
 ### Scheduled Regeneration
 
 For regular metadata maintenance and compliance with eduGAIN requirements, the system can also regenerate metadata on a scheduled basis. See [Scheduled Tasks](../deployment/scheduled_tasks.md) for details on configuring automated metadata regeneration.

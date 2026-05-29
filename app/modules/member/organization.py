@@ -174,7 +174,21 @@ class MemberOrganizationModelView(MemberBaseView):
             )
             return
 
-        self._regenerate_metadata()
+        try:
+            self._regenerate_metadata(raise_on_error=True)
+        except Exception as exc:
+            flash(
+                "Organization was updated and entity metadata was re-transformed, "
+                "but federation metadata could not be regenerated. Please contact "
+                "a federation administrator to fix metadata generation and retry the organization update.",
+                "error",
+            )
+            logger.exception(
+                "[Metadata] Organization #%s federation metadata regeneration failed: %s",
+                model.organization_id,
+                exc,
+            )
+            return
 
         flash(
             "Organization configuration has been updated. All entities in this "

@@ -184,13 +184,13 @@ def ensure_metadata_command():
             continue
 
         click.echo(f"Generating missing {label}: {output_path}")
-        MetadataService.safe_regenerate(
+        result = MetadataService.safe_regenerate(
             output_path_key=output_path_key,
             statuses=statuses,
             edugain_only=edugain_only,
         )
 
-        if os.path.exists(output_path):
+        if result and os.path.exists(output_path):
             generated.append((label, output_path))
         else:
             failed.append((label, output_path))
@@ -311,11 +311,13 @@ def _regenerate_all_metadata():
 
     _ensure_metadata_output_dirs()
 
-    for _, output_path_key, statuses, edugain_only in _metadata_targets():
+    for label, output_path_key, statuses, edugain_only in _metadata_targets():
+        logger.info("Regenerating %s", label)
         MetadataService.safe_regenerate(
             output_path_key=output_path_key,
             statuses=statuses,
             edugain_only=edugain_only,
+            raise_on_error=True,
         )
 
     logger.info("All federation metadata files regenerated successfully")
