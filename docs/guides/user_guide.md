@@ -64,6 +64,7 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
+- Treat this link as credential-equivalent. Share it only with the intended user through a trusted channel, and do not paste it into screenshots, tickets, chat logs, or public issues
 - Email delivery status can be reviewed in `Federation Admin/System/Email Delivery`
 - Do not send or reuse predictable temporary passwords
 
@@ -97,6 +98,7 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
+- Treat this link as credential-equivalent. Share it only with the intended user through a trusted channel, and do not paste it into screenshots, tickets, chat logs, or public issues
 - Email delivery status can be reviewed by federation administrators in `Federation Admin/System/Email Delivery`
 
 ## Identity Provider Management

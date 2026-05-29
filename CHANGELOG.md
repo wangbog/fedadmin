@@ -1,0 +1,18 @@
+# Changelog
+
+All notable changes to this project should be documented in this file.
+
+This project follows a simple changelog format. Dates use `YYYY-MM-DD`.
+
+## Unreleased
+
+No unreleased changes yet.
+
+## 0.1.0 - Initial public release
+
+- Initial FedAdmin web application for managing federation organizations, users, IdPs, and SPs.
+- Added beta and production metadata workflows with entity application and approval states.
+- Added federation metadata generation, metadata transformation, and eduGAIN metadata import/update support.
+- Added Docker-based development and production deployment documentation.
+- Added documentation for user workflows, scheduled tasks, storage layout, backlog, known issues, and glossary.
+- Added MIT license, security policy, contribution guidelines, and changelog.

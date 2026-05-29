@@ -143,7 +143,13 @@ See [Backlog](docs/reference/backlog.md)
 ### Known issues
 See [Known issues](docs/reference/issues.md)
 
-## 8. Referenced Specifications
+## 8. Contributing and Security
+
+See [Contributing](.github/CONTRIBUTING.md) for development and pull request guidance.
+
+Please report security issues privately. See [Security Policy](.github/SECURITY.md).
+
+## 9. Referenced Specifications
 
 This project references the following open standards and specifications:
 
@@ -162,9 +168,9 @@ This project references the following open standards and specifications:
 | [REFEDS Research & Scholarship Category](https://refeds.org/category/research-and-scholarship/) | Research & Scholarship entity category for academic federations |
 | [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct/) | Data protection and privacy code of conduct |
 
-## 9. Glossary
+## 10. Glossary
 See [Glossary](docs/reference/glossary.md)
 
-## 10. License
+## 11. License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](LICENSE).
