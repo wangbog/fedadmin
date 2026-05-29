@@ -3,6 +3,8 @@ import click
 import subprocess
 import secrets
 import string
+import re
+from urllib.parse import urlparse
 from flask import current_app
 from flask.cli import with_appcontext
 from flask_security.utils import hash_password
@@ -34,7 +36,6 @@ def init_certs_command():
     if os.path.exists(key_path) or os.path.exists(cert_path):
         click.confirm("Certificate files already exist. Overwrite?", abort=True)
 
-    fed_name = current_app.config.get("FEDERATION_NAME", "samplefed")
     cmd = [
         "openssl",
         "req",
@@ -49,7 +50,7 @@ def init_certs_command():
         "3650",
         "-nodes",
         "-subj",
-        f"/CN=fed-{fed_name}.example.com",
+        f"/CN={urlparse(_default_federation_base_url()).netloc}",
     ]
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
@@ -94,10 +95,11 @@ def init_db_command():
 
     # Insert default federation configuration if table is empty
     if not Federation.query.first():
+        fed_base_url = _default_federation_base_url()
         default_fed = Federation(
-            registration_authority="https://example.com",
-            registration_policy_url="https://example.com/policy",
-            publisher="https://example.com",
+            registration_authority=fed_base_url,
+            registration_policy_url=f"{fed_base_url}/metadata/registration-policy/v1",
+            publisher=f"{fed_base_url}/metadata",
         )
         db.session.add(default_fed)
         db.session.commit()
@@ -115,7 +117,7 @@ def init_db_command():
             organization_description="This is the federation admin organization.",
             organization_type=OrganizationType.FEDERATION_ADMIN.value,
             organization_status=EntityStatus.READY.value,
-            organization_url="https://example.com",
+            organization_url=_default_federation_base_url(),
         )
         db.session.add(fed_admin_org)
         db.session.commit()
@@ -164,50 +166,6 @@ def init_db_command():
         click.echo("   If you lose this password, you will need to reset it manually.")
 
     click.echo("\nDatabase initialization completed.")
-
-
-@click.command("ensure-metadata")
-@with_appcontext
-def ensure_metadata_command():
-    """Generate missing federation metadata files without overwriting existing files."""
-
-    generated = []
-    existing = []
-    failed = []
-
-    _ensure_metadata_output_dirs()
-
-    for label, output_path_key, statuses, edugain_only in _metadata_targets():
-        output_path = current_app.config[output_path_key]
-        if os.path.exists(output_path):
-            existing.append((label, output_path))
-            continue
-
-        click.echo(f"Generating missing {label}: {output_path}")
-        result = MetadataService.safe_regenerate(
-            output_path_key=output_path_key,
-            statuses=statuses,
-            edugain_only=edugain_only,
-        )
-
-        if result and os.path.exists(output_path):
-            generated.append((label, output_path))
-        else:
-            failed.append((label, output_path))
-
-    for label, output_path in existing:
-        click.echo(f"Exists: {label} ({output_path})")
-    for label, output_path in generated:
-        click.echo(f"Generated: {label} ({output_path})")
-
-    if failed:
-        for label, output_path in failed:
-            click.echo(f"Failed: {label} ({output_path})", err=True)
-        raise click.ClickException(
-            "Some metadata files could not be generated. Check logs and signing certificate configuration."
-        )
-
-    click.echo("Federation metadata files are present.")
 
 
 @click.command("regenerate-metadata")
@@ -262,7 +220,6 @@ def check_edugain_updates_command():
 def register_commands(app):
     app.cli.add_command(init_certs_command)
     app.cli.add_command(init_db_command)
-    app.cli.add_command(ensure_metadata_command)
     app.cli.add_command(regenerate_metadata_command)
     app.cli.add_command(check_edugain_updates_command)
 
@@ -291,11 +248,18 @@ def _metadata_targets():
     ]
 
 
-def _ensure_metadata_output_dirs():
+def _create_metadata_output_dirs():
     """Create directories that hold generated federation metadata files."""
     for _, output_path_key, _, _ in _metadata_targets():
         output_dir = os.path.dirname(current_app.config[output_path_key])
         os.makedirs(output_dir, exist_ok=True)
+
+
+def _default_federation_base_url():
+    fed_name = current_app.config.get("FEDERATION_NAME", "samplefed")
+    slug = re.sub(r"[^a-z0-9-]+", "-", str(fed_name).lower()).strip("-")
+    slug = re.sub(r"-+", "-", slug)
+    return f"https://{slug or 'samplefed'}.example.org"
 
 
 def _regenerate_all_metadata():
@@ -309,7 +273,7 @@ def _regenerate_all_metadata():
 
     logger.info("Regenerating all federation metadata files")
 
-    _ensure_metadata_output_dirs()
+    _create_metadata_output_dirs()
 
     for label, output_path_key, statuses, edugain_only in _metadata_targets():
         logger.info("Regenerating %s", label)

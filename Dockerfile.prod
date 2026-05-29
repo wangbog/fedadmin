@@ -15,8 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create fedadmin user and group with UID/GID 5000
 RUN groupadd -g 5000 fedadmin && useradd -u 5000 -g fedadmin -m -s /bin/bash fedadmin
 
-# Create log directory for fedadmin user
-RUN mkdir -p /var/log/fedadmin && chown fedadmin:fedadmin /var/log/fedadmin
+# Create runtime directories for fedadmin user
+RUN mkdir -p /var/log/fedadmin /var/run/pyff \
+    && chown -R fedadmin:fedadmin /var/log/fedadmin /var/run/pyff
 
 WORKDIR /app
 
