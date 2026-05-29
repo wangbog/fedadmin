@@ -32,4 +32,4 @@ RUN chown -R fedadmin:fedadmin /app
 EXPOSE 5000
 
 # Fix ownership at startup (volume mount may override) and run as fedadmin
-CMD ["sh", "-c", "chown -R fedadmin:fedadmin /app && su - fedadmin -s /bin/bash -c 'cd /app && flask run --host=0.0.0.0'"]
+CMD ["sh", "-c", "chown -R fedadmin:fedadmin /app && su fedadmin -s /bin/bash -c 'cd /app && flask run --host=0.0.0.0'"]

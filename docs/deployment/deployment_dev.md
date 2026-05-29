@@ -42,7 +42,7 @@ The container includes the Linux system packages and Python dependencies require
 
 3. **Build and start the development container**
 
-   **⚠️ Important:** The default timezone is `TZ=Asia/Shanghai` for China. Modify it in `docker-compose.yml` if your development environment is located in another region, so the application logs use the correct local time.
+   **⚠️ Important:** The default timezone is `TZ=Asia/Shanghai` for China. Modify it in `docker-compose.yml` if your development environment is located in another region, so the application logs use the correct local time. Rebuild and recreate the container after changing timezone settings; existing log lines keep the timestamp format used when they were written.
 
    Run from the project root:
 
