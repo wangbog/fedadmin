@@ -11,6 +11,7 @@ from flask import (
 )
 from flask_security import auth_required, current_user
 from . import main_bp
+from app.extensions import db
 from app.models import Idp, Sp
 from app.utils.file_helpers import is_within_directory
 from app.utils.logging_helpers import logger, get_client_ip
@@ -73,7 +74,9 @@ def download_file(entity_type, entity_id):
         abort(404)
 
     model_cls, file_field = ENTITY_MODELS[entity_type]
-    entity = model_cls.query.get_or_404(entity_id)
+    entity = db.session.get(model_cls, entity_id)
+    if not entity:
+        abort(404)
 
     # Permission check: federation admin or current user must belong to the same organization
     if not (

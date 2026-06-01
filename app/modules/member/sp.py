@@ -233,7 +233,7 @@ class MemberSpModelView(MemberBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(
@@ -294,7 +294,7 @@ class MemberSpModelView(MemberBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(
@@ -343,7 +343,7 @@ class MemberSpModelView(MemberBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(
@@ -413,7 +413,7 @@ class MemberSpModelView(MemberBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(
@@ -609,7 +609,7 @@ class MemberSpModelView(MemberBaseView):
 
             # Get old paths (for cleanup)
             old_metadata_relative = None
-            original = self.model.query.get(model.sp_id)
+            original = self.session.get(self.model, model.sp_id)
             if original:
                 old_metadata_relative = original.sp_metadata_file
 

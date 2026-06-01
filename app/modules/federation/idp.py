@@ -152,7 +152,7 @@ class FederationIdpModelView(FederationBaseView):
                 f"[{client_ip}] [APPROVE FAILED] - User {current_user.id}({current_user.email}) failed to approve IdP: Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(
@@ -206,7 +206,7 @@ class FederationIdpModelView(FederationBaseView):
                 f"[{client_ip}] [REJECT FAILED] - User {current_user.id}({current_user.email}) failed to reject IdP: Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("Entity not found.", "error")
             logger.warning(

@@ -108,7 +108,7 @@ class FederationUserModelView(FederationBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("User not found.", "error")
             logger.warning(

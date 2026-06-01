@@ -8,7 +8,7 @@ import uuid
 import hashlib
 import json
 import shutil
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from email.utils import parseaddr
 from urllib.parse import urlparse, urlencode
 from lxml import etree
@@ -577,7 +577,7 @@ class MetadataService:
                 name_urn = f"urn:mace:shibboleth:{federation_name}"
 
                 # Generate ID like "samplefed20260326023014"
-                now = datetime.utcnow()
+                now = datetime.now(UTC)
                 id_suffix = now.strftime("%Y%m%d%H%M%S")
                 entity_id = f"{federation_name}{id_suffix}"
 
@@ -590,7 +590,7 @@ class MetadataService:
                 publisher = fed.publisher if fed else "https://www.example.com"
 
                 # Generate creation instant for PublicationInfo
-                creation_instant = now.isoformat(timespec="seconds") + "Z"
+                creation_instant = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
                 # Prepare XSLT template with publisher and creation instant replaced
                 xslt_template_path = os.path.join(
@@ -703,14 +703,14 @@ class MetadataService:
             logger.warning(
                 "[Metadata] Federation configuration not found, skipping registration info"
             )
-        org = Organization.query.get(organization_id)
+        org = db.session.get(Organization, organization_id)
         if not org:
             raise ValueError(f"Organization {organization_id} not found")
 
         if entity_type == "idp":
-            entity = Idp.query.get(entity_id)
+            entity = db.session.get(Idp, entity_id)
         else:
-            entity = Sp.query.get(entity_id)
+            entity = db.session.get(Sp, entity_id)
         if not entity:
             raise ValueError(f"{entity_type.upper()} {entity_id} not found")
 
@@ -887,7 +887,8 @@ class MetadataService:
         )
         ri.set("registrationAuthority", fed.registration_authority)
         ri.set(
-            "registrationInstant", datetime.utcnow().isoformat(timespec="seconds") + "Z"
+            "registrationInstant",
+            datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
 
         if fed.registration_policy_url:
@@ -1199,7 +1200,8 @@ class MetadataService:
         )
         ri.set("registrationAuthority", registration_authority)
         ri.set(
-            "registrationInstant", datetime.utcnow().isoformat(timespec="seconds") + "Z"
+            "registrationInstant",
+            datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
         if registration_policy_url:
             policy = etree.SubElement(

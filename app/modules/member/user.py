@@ -93,7 +93,7 @@ class MemberUserModelView(MemberBaseView):
                 "Invalid request"
             )
             return redirect(redirect_url)
-        model = self.session.query(self.model).get(record_id)
+        model = self.session.get(self.model, record_id)
         if not model:
             flash("User not found.", "error")
             logger.warning(
@@ -148,7 +148,7 @@ class MemberUserModelView(MemberBaseView):
             model.organization_id = current_user.organization_id
 
             # Set roles based on organization type
-            organization = Organization.query.get(current_user.organization_id)
+            organization = db.session.get(Organization, current_user.organization_id)
             if not organization:
                 abort(400, description="Invalid organization")
 
