@@ -507,6 +507,7 @@ class MetadataService:
         - edugain_only: if True, only include entities with eduGAIN enabled
         """
         sources = []
+        missing = []
         storage_root = self.app.config["STORAGE_ROOT"]
 
         # IdPs
@@ -522,7 +523,7 @@ class MetadataService:
             if os.path.exists(abs_path):
                 sources.append((abs_path, "idp"))
             else:
-                logger.error(f"[Metadata] Transformed IdP metadata missing: {abs_path}")
+                missing.append(f"IdP #{idp.idp_id} ({idp.idp_entityid}): {abs_path}")
 
         # SPs
         query = Sp.query.filter(Sp.sp_metadata_file.isnot(None))
@@ -537,7 +538,12 @@ class MetadataService:
             if os.path.exists(abs_path):
                 sources.append((abs_path, "sp"))
             else:
-                logger.error(f"[Metadata] Transformed SP metadata missing: {abs_path}")
+                missing.append(f"SP #{sp.sp_id} ({sp.sp_entityid}): {abs_path}")
+
+        if missing:
+            error_msg = "Transformed metadata files missing:\n" + "\n".join(missing)
+            logger.error("[Metadata] %s", error_msg)
+            raise FileNotFoundError(error_msg)
 
         return sources
 

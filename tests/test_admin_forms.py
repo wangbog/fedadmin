@@ -8,7 +8,7 @@ from app.extensions import db
 from app.models import Sp
 from app.models.edugain_status import EdugainStatus
 from app.models.entity_status import EntityStatus
-from tests.conftest import login_client, make_organization, make_user
+from tests.conftest import login_client, make_organization, make_sp, make_user
 
 
 SP_METADATA = """\
@@ -115,3 +115,32 @@ def test_member_sp_edit_hook_rejects_non_init_entity(app, roles):
             )
 
     assert db.session.get(Sp, sp.sp_id).sp_name == "Ready SP"
+
+
+def test_member_sp_already_in_rejects_duplicate_entity_id(app, roles):
+    org = make_organization("Member One")
+    existing = make_sp(
+        org,
+        "private/members/1/existing.xml",
+        entity_id="https://duplicate-sp.example.org/metadata",
+    )
+    db.session.commit()
+
+    candidate = Sp(
+        sp_status=EntityStatus.INIT.value,
+        sp_name="eduGAIN SP",
+        sp_description="",
+        sp_entityid=existing.sp_entityid,
+        sp_metadata_file="",
+        sp_logo="",
+        sp_edugain=EdugainStatus.ALREADY_IN.value,
+        contact_technical_name="",
+        contact_technical_email="",
+        security_contact_name="",
+        security_contact_email="",
+        organization_id=org.organization_id,
+    )
+    view = app.view_functions["member_sp.create_view"].__self__
+
+    with pytest.raises(ValueError, match="This entityID already exists"):
+        view._validate_entity_edugain(candidate)

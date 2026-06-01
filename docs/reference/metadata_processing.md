@@ -86,6 +86,8 @@ When member organization or federation information is modified, the system synch
 
 Metadata regeneration failures are reported to the user. Approval and withdrawal operations keep the entity in its original status if production metadata cannot be regenerated. For beta-only changes such as entity create, edit, or delete, the data change may already be saved, but the user is told that beta metadata was not regenerated and should retry after the generation issue is fixed or contact a federation administrator.
 
+If the database contains entities eligible for a target metadata file but their transformed metadata files are missing, regeneration fails instead of publishing a partial aggregate. This applies to both operation-triggered regeneration and scheduled regeneration.
+
 ### Scheduled Regeneration
 
 For regular metadata maintenance and compliance with eduGAIN requirements, the system can also regenerate metadata on a scheduled basis. See [Scheduled Tasks](../deployment/scheduled_tasks.md) for details on configuring automated metadata regeneration.

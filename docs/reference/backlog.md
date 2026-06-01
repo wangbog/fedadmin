@@ -203,3 +203,10 @@ The current production Docker image installs build-time packages such as `build-
 Consider converting `Dockerfile.prod` to a multi-stage build. The builder stage would install compilers, development headers, and Python wheels. The final stage would copy only installed Python packages, application code, and runtime system libraries.
 
 This would reduce image size and remove unnecessary compiler tooling from the production container. The change should be tested by building the production image, importing key dependencies such as `xmlsec`, `magic`, and `lxml`, running `pyff --version`, and starting Gunicorn with the production entry point.
+
+## 8. Production Database Backend
+
+The current production deployment uses SQLite for simplicity. This is acceptable for small, low-concurrency deployments, but the Gunicorn production configuration uses multiple workers and threads, and scheduled jobs can run while administrators are using the web UI. These concurrent write paths may lead to SQLite lock contention under real production load.
+
+**Future Enhancement:**
+Evaluate a production database backend such as PostgreSQL or MySQL, or provide an explicit single-writer SQLite production profile for lightweight deployments. If a server database is added, document backup, migration, connection pooling, and operational requirements alongside the existing Docker deployment guide.

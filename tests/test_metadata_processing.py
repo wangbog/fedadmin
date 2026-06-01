@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from lxml import etree
 
 from app.extensions import db
@@ -91,6 +92,15 @@ def test_collect_source_files_skips_edugain_disabled_entities(app, clean_db):
             "sp",
         )
     ]
+
+
+def test_collect_source_files_fails_when_transformed_metadata_is_missing(app, clean_db):
+    org = make_organization("Member One")
+    make_sp(org, "private/members/1/missing.xml")
+    db.session.commit()
+
+    with pytest.raises(FileNotFoundError, match="Transformed metadata files missing"):
+        MetadataService(app)._collect_source_files()
 
 
 def test_regenerate_metadata_uses_pyff_and_writes_signed_output(app, clean_db):

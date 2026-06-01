@@ -203,3 +203,36 @@ class MemberBaseView(BaseAdminView):
         name_value = getattr(model, name_attr)
         if not name_value or not name_value.strip():
             raise ValueError("Entity name is required.")
+
+        entity_id_attr = model.entity_type + "_entityid"
+        entity_id = getattr(model, entity_id_attr, None)
+        if not entity_id or not entity_id.strip():
+            raise ValueError("Entity ID is required for entities already in eduGAIN.")
+
+        entity_id = entity_id.strip()
+        setattr(model, entity_id_attr, entity_id)
+        if not (
+            entity_id.startswith("http://")
+            or entity_id.startswith("https://")
+            or entity_id.startswith("urn:")
+        ):
+            raise ValueError("entityID must start with http://, https:// or urn:")
+
+        pk_attr = model.entity_type + "_id"
+        pk_value = getattr(model, pk_attr, None)
+        model_cls = model.__class__
+        entity_id_column = getattr(model_cls, entity_id_attr)
+        pk_column = getattr(model_cls, pk_attr)
+
+        original_autoflush = self.session.autoflush
+        try:
+            self.session.autoflush = False
+            existing = self.session.query(model_cls).filter(
+                entity_id_column == entity_id
+            )
+            if pk_value:
+                existing = existing.filter(pk_column != pk_value)
+            if existing.first():
+                raise ValueError(f"This entityID already exists: {entity_id}")
+        finally:
+            self.session.autoflush = original_autoflush

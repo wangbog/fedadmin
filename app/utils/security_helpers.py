@@ -2,6 +2,7 @@ from flask import request, flash, redirect, url_for
 from flask_wtf.csrf import validate_csrf
 from wtforms import ValidationError
 import functools
+from app.utils.url_helpers import safe_redirect_target
 
 
 def validate_csrf_token():
@@ -28,7 +29,8 @@ def csrf_protected(f):
     def decorated_function(*args, **kwargs):
         # Always validate CSRF token first
         if not validate_csrf_token():
-            return redirect(request.referrer or url_for(".index_view"))
+            fallback = url_for(".index_view")
+            return redirect(safe_redirect_target(request.referrer, fallback))
 
         # If validation passes, proceed with the original function
         return f(*args, **kwargs)
