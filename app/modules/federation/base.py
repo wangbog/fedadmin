@@ -1,5 +1,6 @@
 from flask import flash, redirect, url_for, request
 from app.modules.admin.base import BaseAdminView
+from app.utils.url_helpers import safe_redirect_target
 
 
 class FederationBaseView(BaseAdminView):
@@ -14,5 +15,6 @@ class FederationBaseView(BaseAdminView):
     def handle_view_exception(self, exc):
         if isinstance(exc, ValueError):
             flash(str(exc), "error")
-            return redirect(request.referrer or url_for("federation_admin.index"))
+            fallback = url_for("federation_admin.index")
+            return redirect(safe_redirect_target(request.referrer, fallback))
         return super().handle_view_exception(exc)

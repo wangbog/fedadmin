@@ -6,7 +6,7 @@ from sqlalchemy.orm import joinedload
 import re
 from app.modules.admin.base import BaseAdminView
 from app.services.metadata import MetadataService
-from app.utils.url_helpers import is_valid_http_url
+from app.utils.url_helpers import is_valid_http_url, safe_redirect_target
 
 
 class MemberBaseView(BaseAdminView):
@@ -17,7 +17,8 @@ class MemberBaseView(BaseAdminView):
     def handle_view_exception(self, exc):
         if isinstance(exc, ValueError):
             flash(str(exc), "error")
-            return redirect(request.referrer or url_for("member_admin.index"))
+            fallback = url_for("member_admin.index")
+            return redirect(safe_redirect_target(request.referrer, fallback))
         return super().handle_view_exception(exc)
 
     def get_query(self):
