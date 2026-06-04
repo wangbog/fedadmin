@@ -1,22 +1,22 @@
-# User Guide
+# Administrator User Guide
 
-This document provides comprehensive guidance for users of the FedAdmin federated identity management system. It covers user roles, operational workflows, and system features.
+This document provides guidance for FedAdmin administrator users: federation administrators and member organization administrators. It does not describe end-user workflows for students, faculty, researchers, or other people who authenticate through the federation.
 
 ## Table of Contents
 
-1. [User Roles](#user-roles)
+1. [Administrator User Roles](#administrator-user-roles)
 2. [Federation Initial Setup Process](#federation-initial-setup-process)
-3. [Member Organizations and Users Management](#member-organizations-and-users-management)
-4. [Current Member Organization and Users Management](#current-member-organization-and-users-management)
+3. [Member Organizations and Administrator Users Management](#member-organizations-and-administrator-users-management)
+4. [Member Organization and Administrator Users Management](#member-organization-and-administrator-users-management)
 5. [Identity Provider Management](#identity-provider-management)
 6. [Service Provider Management](#service-provider-management)
 7. [Note on Metadata Files](#note-on-metadata-files)
 
-## User Roles
+## Administrator User Roles
 
-The FedAdmin system defines two primary administrative categories with distinct permissions and responsibilities. For detailed information about these roles, please refer to the [project README documentation](../../README.md#system-organization).
+The FedAdmin system defines two primary administrative categories with distinct permissions and responsibilities. For detailed information about these roles, please refer to the [project README documentation](../../README.md#core-concepts).
 
-**Note**: Users under the `FEDERATION_ADMIN` organization (which is unique) have both federation administrator and full member administrator privileges. After login, users can switch between identities using the "Site/Switch to Member(Federation) Admin" link.
+**Note**: Administrator users under the `FEDERATION_ADMIN` organization (which is unique) have both Federation Administrator and Full Member Administrator privileges. After login, they can switch between identities using the "Site/Switch to Member(Federation) Admin" link.
 
 ## Federation Initial Setup Process
 
@@ -38,9 +38,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
   - Reference: [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf)
 - All federation administrators should ensure these details are accurate and complete before proceeding with entity registration
 
-## Member Organizations and Users Management
+## Member Organizations and Administrator Users Management
 
-**Note**: The current business flow requires Federation Administrators to manually register Organizations and Users. Organizations must be created first by the Federation Administrator, followed by Users who are then assigned to these Organizations. This process is not designed for self-service registration by users.
+**Note**: In FedAdmin, "Users" refers to users of this system: administrator user accounts for Federation Administrators or member organizations. It does not mean end users such as students, faculty, or researchers who authenticate through the federation. The current business flow requires Federation Administrators to manually register Organizations and administrator users. Organizations must be created first by the Federation Administrator, followed by one or more administrator users assigned to each Organization. This process is not designed for self-service registration by member organizations or end users.
 
 **Required Role**: Federation Administrator
 
@@ -53,14 +53,15 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - **Organization Status Field**: 
   - This is a reserved field with no active functionality at present
   - It is recommended to set this field to `READY` for all organizations
-  - Future development may implement registration/approval logic based on this status field, potentially supporting a multi-stage approval workflow (e.g., PENDING → APPROVED → READY)
+  - Future development may implement registration/approval logic based on this status field, potentially supporting a multi-stage approval workflow (e.g., PENDING -> APPROVED -> READY)
   - This would allow for more granular control over organization lifecycle management
 
 ### 3.2 Manage Users
 - Navigate to `Federation Admin/User` page
-- Create new users and assign them to specific organizations
-- Each user must be associated with an organization before they can be created
-- Users will receive appropriate roles based on their organization type
+- Create new administrator user accounts and assign them to specific organizations
+- Each administrator user must be associated with an organization before they can be created
+- One organization can have multiple administrator users
+- Administrator users receive appropriate roles based on their organization type
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
@@ -68,16 +69,16 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Email delivery status can be reviewed in `Federation Admin/System/Email Delivery`
 - Do not send or reuse predictable temporary passwords
 
-## Current Member Organization and Users Management
+## Member Organization and Administrator Users Management
 
-**Note**: Users can only manage their own organization's data and users within their assigned organization.
+**Note**: Member administrator users can only manage their own organization's data and administrator users within their assigned organization. One organization can have multiple administrator users.
 
 **Required Roles**: Full Member Administrator / SP Member Administrator
 
 ### 4.1 Change Password
 - Navigate to `Site/Change Password` page
-- New organization users normally set their password through the setup/reset link created by their administrator
-- Users can later change their own password from this page
+- New organization administrator users normally set their password through the setup/reset link created by their administrator
+- Administrator users can later change their own password from this page
 - This is a critical security requirement for protecting administrative access
 
 ### 4.2 Complete Organization Information
@@ -92,8 +93,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
 
 ### 4.3 Manage Organization Users
 - Navigate to `Member Admin/User` page
-- Manage users within your current organization
-- Create, edit, or delete users as needed
+- Manage administrator user accounts within your current organization
+- Create, edit, or delete administrator users as needed
 - Assign appropriate roles based on your current organization type
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
@@ -106,8 +107,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
 ### 5.1 Create/Modify IdP (Full Member Administrators)
 - Navigate to `Member Admin/IdP` page
 - **IdP eduGAIN Status Options**:
-  - `ALREADY_IN`: No metadata file upload required. Only EntityID is needed; the system will automatically retrieve metadata from eduGAIN's API
-  - Other options: Metadata file upload is mandatory
+  - `YES`: Include this IdP in the federation's eduGAIN metadata output after it is approved. Metadata file upload is mandatory.
+  - `NO`: Do not include this IdP in the federation's eduGAIN metadata output. It can still be included in beta and production federation metadata. Metadata file upload is mandatory.
+  - `ALREADY_IN`: The IdP entity has already been added to eduGAIN through another federation. No metadata file upload is required. Only EntityID is needed; the system will automatically retrieve metadata from eduGAIN's API
 - Created IdP entities have `INIT` status by default
 - Ensure all required fields are completed before submission
 
@@ -115,7 +117,6 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Navigate to `Member Admin/IdP` page
 - Click "Submit for approval" button
 - IdP entity status changes from `INIT` to `APPROVING`
-- Submission requires a current transformed metadata file. If the transformed metadata is missing or outdated, edit and save the entity first, then submit it again.
 - **Note**: IdP entities in `APPROVING` status can be withdrawn back to `INIT` status using the "Cancel application" button
 
 ### 5.3 Approve/Reject (Federation Administrators)
@@ -127,7 +128,7 @@ The FedAdmin system defines two primary administrative categories with distinct 
 ### 5.4 Withdraw (Full Member Administrators)
 - Navigate to `Member Admin/IdP` page
 - READY status IdP entities can be withdrawn using the "Withdraw" button
-- Withdrew IdP entities return to `INIT` status
+- Withdrawn IdP entities return to `INIT` status
 
 ## Service Provider Management
 
@@ -135,7 +136,7 @@ Service Provider management follows the same workflow as Identity Provider Manag
 
 - **Eligible Roles**: Both Full Member Administrators and SP Member Administrators can manage Service Providers
 - **Navigation**: Access through `Member Admin/SP` page instead of `Member Admin/IdP`
-- **SP-specific Options**: SP entities have eduGAIN status options similar to IdP entities, but the metadata file requirements and validation rules are specific to Service Provider configurations
+- **SP-specific Validation**: Metadata validation rules are specific to Service Provider configurations.
 
 All other aspects of the workflow (creation, submission for approval, approval/rejection by federation administrators, and withdrawal) follow the same procedures as described in the Identity Provider Management section.
 
@@ -145,6 +146,6 @@ The following applies to both Identity Provider and Service Provider management:
 
 - `INIT` and `APPROVING` status IdP/SP entities are included in `fed-metadata-beta.xml` for testing and validation
 - `READY` status IdP/SP entities are included in `fed-metadata.xml` for production use
-- `READY` status IdP/SP entities with `idp_edugain` or `sp_edugain` set to `YES` are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
+- `READY` status IdP/SP entities whose eduGAIN participation option was set to `YES` when creating the entity are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
 - When an entity is created or edited, FedAdmin transforms its metadata before regenerating beta metadata. If transformation fails, the entity is saved but beta metadata is not regenerated until the metadata issue is corrected and the entity is saved again.
 - If production metadata cannot be regenerated during approval or withdrawal, the status change is not completed. Follow the on-screen guidance, then retry after the metadata generation issue is fixed.

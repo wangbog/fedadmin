@@ -2,22 +2,30 @@
 
 This document describes future improvements and features planned for the FedAdmin system.
 
-## 1. Organization and User Registration Process
+## 1. Organization and Administrator User Registration Process
 
-The current business flow requires Federation Administrators to manually register Organizations and Users. Organizations must be created first by the Federation Administrator, followed by Users who are then assigned to these Organizations. This process is not designed for self-service registration by users.
+The current business flow requires Federation Administrators to manually register Organizations and administrator user accounts. Organizations must be created first by the Federation Administrator, followed by administrator users who are then assigned to these Organizations. This process is not designed for self-service registration by member organizations or end users.
 
 **Future Enhancement:**
-Future development should consider allowing member organizations to self-register online by submitting their organization information and creating default users. The Federation Administrator's role would be limited to reviewing and approving these registration requests, reducing the administrative burden and enabling faster onboarding of new members.
+Future development should consider allowing member organizations to self-register online by submitting their organization information and creating default administrator user accounts. The Federation Administrator's role would be limited to reviewing and approving these registration requests, reducing the administrative burden and enabling faster onboarding of new members.
+
+The following table summarizes how the current offline onboarding process could evolve into a more complete online workflow.
+
+| Stage | Current Member Organization Flow | Current Federation Administrator Flow | Possible Future Enhancement |
+|-------|----------------------------------|---------------------------------------|-----------------------------|
+| Membership application | The organization submits application details through the federation's existing offline or external process | The Federation Administrator reviews the application outside FedAdmin, then creates the organization and administrator user accounts manually | Add online organization application, default administrator creation, review, approval, rejection, and notification workflows |
+| Technical testing | Member administrators complete organization information, add IdP/SP entities, and test them with beta federation metadata | Federation administrators provide support and review submitted entities when they are ready for production | Add onboarding checklists, testing result records, metadata validation summaries, and clearer issue tracking before production submission |
+| Production operation | Member administrators submit tested entities for approval and maintain approved entities over time | Federation administrators approve or reject entities, publish production metadata, and operate eduGAIN metadata exchange | Add production readiness checks, approval history, publication health status, and operational monitoring for approved entities |
 
 **Organization Status Field:**
 - The Organization's `organization_status` field is currently a reserved field with no active functionality.
 - It is recommended to set this field to `READY` for all organizations at this stage.
-- Future development may implement registration/approval logic based on this status field, potentially supporting a multi-stage approval workflow (e.g., PENDING → APPROVED → READY).
+- Future development may implement registration/approval logic based on this status field, potentially supporting a multi-stage approval workflow (e.g., PENDING -> APPROVED -> READY).
 - This would allow for more granular control over organization lifecycle management, including pending approvals, active status, and potentially inactive or suspended states.
 
 ## 2. Account Security Requirements
 
-Users created by Federation Administrators or Member Administrators set their password through a password setup/reset link. FedAdmin attempts to email the link to the user's email address, records the delivery status, and shows the link once to the administrator after user creation. Setup/reset links must be treated as credential-equivalent one-time links and shared only through trusted channels.
+Administrator users created by Federation Administrators or Member Administrators set their password through a password setup/reset link. FedAdmin attempts to email the link to the user's email address, records the delivery status, and shows the link once to the administrator after user creation. Setup/reset links must be treated as credential-equivalent one-time links and shared only through trusted channels.
 
 The initial federation administrator created by `flask init-db` uses a randomly generated password that is printed once on the console.
 
@@ -29,7 +37,7 @@ Password setup, reset, and change flows use Flask-Security password validation w
 3. Implement mandatory email verification to validate user identities
 4. Add account lockout mechanisms after failed login attempts to prevent brute force attacks
 5. Implement Multi-Factor Authentication (MFA) to add an additional layer of security beyond just passwords
-6. Consider adding administrator actions to resend password setup/reset links for existing users
+6. Consider adding administrator actions to resend password setup/reset links for existing administrator users
 
 ## 3. Flask-Security Email Customization
 

@@ -1,6 +1,6 @@
 # SAML Metadata Processing
 
-The system implements comprehensive SAML metadata lifecycle management, including validation, transformation, and aggregation. All operations comply with SAML 2.0 specifications and REFEDS interoperability profiles.
+The system implements comprehensive SAML metadata lifecycle management, including validation, transformation, and aggregation. The implementation is designed around SAML 2.0 specifications and relevant REFEDS interoperability profiles.
 
 ## Metadata Validation
 

@@ -30,6 +30,6 @@ Currently, pyFF is invoked using the subprocess method for federation metadata a
   - Potential for tighter coupling with pyFF's implementation
   - More difficult to debug
 
-## 2. OpenSSL dependency
+## 2. OpenSSL Dependency
 
-pyFF depends on OpenSSL for digital signing operations. This means both development and production environments must use Linux, as OpenSSL is not fully supported on Windows. Since this project uses Docker containers for both development and production, the Linux requirement is satisfied by the container environment.
+pyFF depends on OpenSSL for digital signing operations. These operations should run inside the Linux container runtime used by FedAdmin. The host machine may be Windows, macOS, or Linux for development, as long as Docker provides the required Linux container environment. For production, use a Linux server and run FedAdmin through the production Docker container.

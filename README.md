@@ -7,107 +7,119 @@
 
 # FedAdmin (NRENIdFedAdmin)
 
-A web based management tool for NREN identity federation administrators to operate federations, managing Identity Providers (IdPs) and Service Providers (SPs), and exchanging metadata with eduGAIN metadata service.
+A web-based management tool for NREN identity federation administrators to operate federations, manage Identity Providers (IdPs) and Service Providers (SPs), and exchange metadata with the eduGAIN metadata service.
 
 ## 1. About FedAdmin
 
 ### Project Background
 
-We are the **CARSI** team, which manages CERNET (China Education and Research NETwork) Identity Federation.
+FedAdmin is based on practical experience from the [CARSI](https://www.carsi.edu.cn/index_en.html) team operating the CERNET (China Education and Research NETwork) Identity Federation, which joined eduGAIN in 2019.
 
-The China Education and Research Network Federated Authentication and Resource Sharing Infrastructure (**CARSI**) provides federal authentication and global academic information resource sharing services for universities and research institutions that have established unified identity management systems on campus networks. CARSI joined eduGAIN in 2019 and over the years it covers over 1000 Chinese universities and institutes.
-
-Based on this practical experience, we decided to share our knowledge and tools through this open-source project. (For more information about CARSI, please refer to https://www.carsi.edu.cn)
-
-**Author's voice**: I am a core member of the CARSI team. I strive to make this project comprehensive enough to be directly deployed as a production environment by new NREN identity federation administrators with reduced deployment and management costs. However, it is still recommended to conduct thorough testing before formal use and read all documentation (especially [Backlog](docs/reference/backlog.md) and [Known Issues](docs/reference/issues.md)) to fully understand the current limitations.
+We decided to share this knowledge and tooling through an open-source project. The goal is to provide a practical system that new NREN identity federation administrators can evaluate, adapt, and deploy with reduced implementation effort. However, it is still recommended to conduct thorough testing before formal use and read all documentation, especially [Backlog](docs/reference/backlog.md) and [Known Issues](docs/reference/issues.md), to fully understand the current limitations.
 
 ### Who/When/Why Use FedAdmin
 
 - **Who**: Federation administrators who are responsible for managing their NREN's identity federation.
 - **When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs and SPs.
 - **Why**: 
-  - This management concept and workflow have been successfully used in CARSI's actual projects for many years
+  - The project is based on practical experience operating identity federation services
   - The system can meet common federation management scenarios and shield the complexity of SAML metadata
-  - It provides a solution for operating federations and exchanging metadata with eduGAIN metadata service
+  - It provides a solution for operating federations and exchanging metadata with the eduGAIN metadata service
 
 See [eduGAIN: Join As Federation](https://technical.edugain.org/joining_checklist) for a practical checklist before joining eduGAIN.
 
-### Primary Deliverables
+## 2. Core Concepts
 
-Administrators of NREN identity federations use this project to manage their federation’s Identity Providers (IdPs) and Service Providers (SPs). The primary deliverables are federation metadata files stored under `./app/storage/public/federation/` (the final host‑side path may vary depending on deployment configuration):
+FedAdmin is organized around six core concepts used by identity federations: two memberships, two admin areas, two operational phases, three metadata files, eduGAIN participation policies, and three entity statuses.
 
-FedAdmin assumes that a federation normally needs two operational environments:
+### Two Memberships
 
-- **Test environment**: A pre-production environment isolated from production. Member organizations can add IdP/SP entities by themselves, and newly added entities are immediately included in the beta federation metadata without waiting for federation administrator approval. This allows members to debug SAML metadata, login flows, attribute release, and SP integration before the entity is promoted to production.
-- **Production environment**: The formal federation environment used by production IdPs, SPs. Only entities that have passed member-side testing and federation administrator approval are included here.
+FedAdmin supports two member organization types:
 
-CARSI operates this two-environment workflow in practice. For the test environment, CARSI also provides a test IdP with test user accounts, a test SP that displays released user attributes after login, and a test DS (Discovery Service) for selecting institutions. This lets a member organization focus on the entity it is adding: when adding a SP, it can test against the federation-provided test IdP; when adding an IdP, it can test against the federation-provided test SP. We recommend that new federations provide similar test and production environments so that metadata promotion and troubleshooting are smoother.
+- **Full member**: The organization can manage both Identity Provider (IdP) and Service Provider (SP) entities.
+- **SP member**: The organization can manage SP entities only.
 
-The three federation metadata files map to these stages:
+These membership types determine what a member organization can maintain after it receives access to the system.
 
-- **fed-metadata-beta.xml**: Beta metadata for entities in the test environment. It includes entities in `INIT` or `APPROVING` status, so newly added entities can be tested immediately before they are approved for production.
-- **fed-metadata.xml**: Production metadata containing all approved entities. Entities validated in the test environment are promoted here after federation administrator approval, and all production services operate based on this file.
-- **fed-metadata-edugain.xml**: Approved entities with eduGAIN participation enabled, used for metadata exchange with the eduGAIN service. Consistent with the opt‑in / opt‑out models outlined below, this file only includes entities explicitly opted into eduGAIN; those opting out are excluded.
+### Two Admin Areas
 
-### About opt-in/opt-out
+FedAdmin provides two administration areas.
 
-FedAdmin supports both opt-in and opt-out models for managing entities in the federation:
+- **Federation Admin** (`/federation`) is used by Federation Administrators to manage organizations, administrator user accounts, federation configuration, entity approval, metadata aggregation, signing certificates, and metadata publication.
 
-- **Opt-In**: Each Service Provider (SP) and Identity Provider (IdP) must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
-- **Opt-Out**: All entities automatically participate in eduGAIN by default, with the option for individual entities to opt-out if needed. This provides a simpler, more automated workflow.
+- **Member Admin** (`/member`) is used by member organization administrators. After a Federation Administrator creates the member organization, assigns its membership type, and creates one or more administrator user accounts, member organization administrators can log in to manage their own organization profile and administrator users, and add or manage IdP/SP entities allowed by their membership type. A Full Member Administrator can add and manage both IdPs and SPs; an SP Member Administrator can add and manage SPs only.
 
-See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about these models and recommendations for your federation.
+See [Administrator User Guide](docs/guides/user_guide.md) for detailed administrator workflows.
 
-FedAdmin provides a unique approach by allowing administrators to decide whether to include each IdP/SP in eduGAIN during entity creation, thereby supporting both opt-in and opt-out models.
+### Member Onboarding Flow
 
-## 2. Project Overview
+The following table summarizes the current high-level flow for bringing a member organization into the federation.
 
-### System Organization
+| Stage | Member Organization Administrator | Federation Administrator |
+|-------|-----------------------------------|--------------------------|
+| Membership application | Provides organization and contact information through the federation's current offline or external process | Reviews the application, then creates the organization and administrator user accounts |
+| Technical testing | Logs in to Member Admin, completes organization information, adds or edits IdP/SP entities, and tests them using beta federation metadata | Supports troubleshooting and reviews submitted entities when they are ready for production |
+| Production operation | Submits tested entities for approval, maintains organization and entity information, and withdraws production entities when needed | Approves or rejects submitted entities and publishes production metadata |
 
-The system is organized into two main administrative modules with distinct roles and responsibilities:
+The technical testing and production operation stages correspond to the entity status and metadata relationships summarized in the [Concept Map](#concept-map) below.
 
-#### Entity Status and Approval Workflow
+### Two Operational Phases
 
-IdP and SP entities use three statuses:
+FedAdmin assumes that a federation normally has two operational phases:
 
-- **`INIT`**: The entity is in the test/debugging stage. Member organizations can create, edit, delete, and test the entity. The entity is included in `fed-metadata-beta.xml`, but not in production metadata.
-- **`APPROVING`**: The entity has been submitted by the member organization for federation administrator review. It still remains in `fed-metadata-beta.xml` and is not yet available in production.
-- **`READY`**: The entity has been approved and is online in production. It is included in `fed-metadata.xml`; if eduGAIN participation is enabled, it is also included in `fed-metadata-edugain.xml`.
+- **Beta phase**: The IdP/SP deployment and testing phase. Member organizations can create, edit, delete, and test entities using the beta federation metadata.
+- **Production phase**: The formal federation operation phase. Only `READY` status entities are included in production federation metadata.
 
-The approval workflow exists to separate member-side testing from production publication. A member organization first creates and tests an entity in `INIT`. When testing is complete, the member submits it for approval, which changes the status to `APPROVING`. A federation administrator can then approve it, changing the status to `READY` and regenerating production federation metadata. Conceptually, approval promotes the entity metadata from the test federation metadata into the production federation metadata. The federation administrator can also reject the application, returning it to `INIT` for further debugging.
+For smoother member-side testing, a federation should prepare a small set of test services for the Beta phase. These services are recommended federation infrastructure, not components automatically deployed by FedAdmin.
 
-#### Federation Administration (`/federation`)
-- **User Roles**: `federation` (federation administrator)
-- **Permissions**: Full access to all organizations and entities
-- **Core Functions**:
-  - Entity approval workflow (approve/reject pending applications)
-  - Federation metadata aggregation and digital signing
-  - Federation configuration and certificate management
-  - Member organization management
+| Test Service | Type | Purpose |
+|--------------|------|---------|
+| Test IdP | Identity Provider | Lets newly registered SPs test login, metadata configuration, signing/encryption settings, and requested attributes |
+| Test SP | Service Provider | Lets newly registered IdPs test authentication, attribute release, and user-facing login behavior |
+| Test Discovery Service | Discovery Service | Lets IdPs and SPs test institution discovery, display names, logos, and redirect behavior before production |
+| Beta federation metadata URL | Metadata feed | Publishes `INIT` and `APPROVING` entities for technical debugging before production approval |
 
-#### Member Administration (`/member`)
-- **User Roles**: Member administrator roles are scoped to a member organization and determine which entity types the organization can maintain:
-  - `full_member`: The member organization can maintain both IdP and SP entities
-  - `sp_member`: The member organization can maintain SP entities only
-- **Permissions**: Access limited to own organization's data only
-- **Core Functions**:
-  - Entity lifecycle management (create, edit, delete IdP/SP entities)
-  - Metadata validation (XSD schema, structure, entityID uniqueness, scope)
-  - Metadata transformation (adding federation-specific extensions)
-  - Organization information management
-  - User management within organization
+### Three Metadata Files
 
-| Feature | Member Module | Federation Module |
-|---------|---------------|-------------------|
-| Create Entity | ✅ | ❌ |
-| Edit Entity | ✅ | ❌ |
-| Delete Entity | ✅ | ❌ |
-| Approve Entity | ❌ | ✅ |
-| Reject Entity | ❌ | ✅ |
-| Metadata Validation | ✅ | ❌ |
-| File Upload Handling | ✅ | ❌ |
+The primary deliverables of FedAdmin are federation metadata files stored under `./app/storage/public/federation/` (the final host-side path may vary depending on deployment configuration). FedAdmin automatically aggregates member metadata and signs the federation metadata outputs.
 
-### Technology Stack
+- **`fed-metadata-beta.xml`**: Metadata for entities in the Beta phase. It includes entities in `INIT` or `APPROVING` status.
+- **`fed-metadata.xml`**: Metadata for entities in the Production phase. It includes entities in `READY` status.
+- **`fed-metadata-edugain.xml`**: eduGAIN exchange metadata for `READY` status IdP/SP entities whose eduGAIN participation option is enabled.
+
+### eduGAIN Participation Policies
+
+FedAdmin supports both opt-in and opt-out models for managing which entities are included in the federation's eduGAIN metadata output:
+
+- **Opt-in**: Each IdP/SP must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
+- **Opt-out**: IdP/SP entities participate in eduGAIN by default, with the option to exclude individual entities when needed. This provides a simpler, more automated workflow.
+
+In practice, each IdP/SP has an eduGAIN participation option during entity creation. `fed-metadata-edugain.xml` includes only `READY` status entities whose setting makes them eligible for eduGAIN exchange.
+
+See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about eduGAIN participation models and recommendations for your federation.
+
+### Three Entity Statuses
+
+IdP and SP entities use the same three-status lifecycle:
+
+- **`INIT`**: The entity is in the Beta phase. Member organizations can create, edit, delete, and test it. It is included in `fed-metadata-beta.xml`, but not in production metadata.
+- **`APPROVING`**: The entity has been submitted by the member organization for federation administrator review and remains in the Beta phase. It remains in `fed-metadata-beta.xml`, but is not yet included in production metadata.
+- **`READY`**: The entity has been approved by a Federation Administrator and is in the Production phase. It is included in `fed-metadata.xml`; if it is eligible for eduGAIN participation, it is also included in `fed-metadata-edugain.xml`.
+
+The approval workflow separates member-side testing from production publication. A member organization first creates and tests an entity in `INIT`. When testing is complete, the member submits it for approval, changing it to `APPROVING`. A federation administrator can approve it, changing it to `READY`, or reject it back to `INIT` for further work.
+
+### Concept Map
+
+The following table summarizes how entity statuses map to operational phases and metadata outputs, with the relevant admin area and membership context.
+
+| Entity Status | Operational Phase | Metadata Output | Admin Area | Membership / Role Context | Meaning |
+|---------------|-------------------|-----------------|------------|---------------------------|---------|
+| `INIT` | Beta phase | `fed-metadata-beta.xml` | Member Admin | Full Member Administrator: IdP/SP; SP Member Administrator: SP only | Entity is being created, edited, and tested |
+| `APPROVING` | Beta phase | `fed-metadata-beta.xml` | Member Admin and Federation Admin | Member organization administrators submit; Federation Administrators review | Entity is under federation review while still testable |
+| `READY` | Production phase | `fed-metadata.xml` | Federation Admin | Federation Administrators approve | Entity is approved for formal federation operation |
+| `READY` with eduGAIN participation enabled | Production phase / eduGAIN exchange | `fed-metadata-edugain.xml` | Federation Admin | Federation Administrators approve; eduGAIN option was set during entity creation | Entity is approved and eligible for eduGAIN metadata exchange |
+
+## 3. Technology Stack
 
 - **Backend Framework**: Flask
 - **ORM**: Flask-SQLAlchemy
@@ -115,16 +127,25 @@ The approval workflow exists to separate member-side testing from production pub
 - **Admin Interface**: Flask-Admin
 - **Metadata Aggregation**: pyFF
 
-## 3. Setup Development Environment
+## 4. Setup Development Environment
+
+Before deploying FedAdmin for your NREN identity federation, you may want to customize it for your federation's operational context. For example, you may need to adapt pages, adjust terminology, or simplify and extend management workflows. The following guide explains how to set up a development environment for that work.
+
 See [Setup Development Environment](docs/deployment/deployment_dev.md)
 
-## 4. Production Deployment
+## 5. Production Deployment
+
+After customization and validation, use the production deployment guide to run FedAdmin with persistent storage, production configuration, metadata signing certificates, and a reverse proxy suitable for federation operations.
+
 See [Production Deployment](docs/deployment/deployment_prod.md)
 
-## 5. User Guide
-See [User Guide](docs/guides/user_guide.md)
+## 6. Administrator User Guide
 
-## 6. Technical Details
+FedAdmin users are federation administrators and member organization administrators, not end users such as students, faculty, or researchers who authenticate through the federation.
+
+See [Administrator User Guide](docs/guides/user_guide.md)
+
+## 7. Technical Details
 
 ### Storage
 See [Storage](docs/reference/storage.md)
@@ -135,7 +156,7 @@ See [SAML Metadata Processing](docs/reference/metadata_processing.md)
 ### Scheduled Tasks
 See [Scheduled Tasks](docs/deployment/scheduled_tasks.md)
 
-## 7. Backlog and known issues
+## 8. Backlog and known issues
 
 ### Backlog
 See [Backlog](docs/reference/backlog.md)
@@ -143,13 +164,13 @@ See [Backlog](docs/reference/backlog.md)
 ### Known issues
 See [Known issues](docs/reference/issues.md)
 
-## 8. Contributing and Security
+## 9. Contributing and Security
 
 See [Contributing](.github/CONTRIBUTING.md) for development and pull request guidance.
 
 Please report security issues privately. See [Security Policy](.github/SECURITY.md).
 
-## 9. Referenced Specifications
+## 10. Referenced Specifications
 
 This project references the following open standards and specifications:
 
@@ -168,9 +189,9 @@ This project references the following open standards and specifications:
 | [REFEDS Research & Scholarship Category](https://refeds.org/category/research-and-scholarship/) | Research & Scholarship entity category for academic federations |
 | [REFEDS Code of Conduct](https://refeds.org/category/code-of-conduct/) | Data protection and privacy code of conduct |
 
-## 10. Glossary
+## 11. Glossary
 See [Glossary](docs/reference/glossary.md)
 
-## 11. License
+## 12. License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -12,9 +12,9 @@ This glossary defines key terms related to federated identity management and the
 
 ## Specific Terms
 
-- **Federation Administrator** - User role with full access to all organizations and entities, responsible for federation-wide operations.
-- **Member Administrator** - User role with access limited to their own organization's data, responsible for managing entities within their organization.
-- **Organization** - An entity that belongs to the federation and can contain users and IdP/SP entities.
+- **Federation Administrator** - Administrator user role with full access to all organizations and entities, responsible for federation-wide operations.
+- **Member Administrator** - Administrator user role with access limited to their own organization's data, responsible for managing entities within their organization.
+- **Organization** - An entity that belongs to the federation and can contain administrator users and IdP/SP entities.
 - **Organization Status** - The current state of an organization (e.g., READY, PENDING).
 - **Entity Status** - The current state of an IdP/SP entity (e.g., INIT, APPROVING, READY).
 - **eduGAIN** - The European educational identity and access management federation, allowing exchange of identity information between national education and research federations.
@@ -43,8 +43,8 @@ This glossary defines key terms related to federated identity management and the
 
 - **Entity Registration** - Process of creating and submitting new IdP/SP entities for approval.
 - **Entity Approval** - Process where Federation Administrators review and approve submitted entities.
-- **Entity Lifecycle** - States through which an entity passes from creation to deactivation (INIT → APPROVING → READY → INACTIVE).
-- **Withdrawal** - Process by which an organization can remove an entity from the federation.
+- **Entity Lifecycle** - Supported IdP/SP status workflow: INIT -> APPROVING -> READY. Rejection, cancellation, or withdrawal returns the entity to INIT.
+- **Withdrawal** - Process by which a member organization removes a READY entity from production metadata and returns it to INIT status.
 
 ## Technical Terms
 
