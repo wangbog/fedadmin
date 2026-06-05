@@ -19,7 +19,7 @@ class Sp(db.Model):
     sp_entityid = db.Column(db.String(255), nullable=False, unique=True)
     sp_metadata_file = db.Column(db.String(255), nullable=False)
     sp_logo = db.Column(db.String(255), nullable=False)
-    sp_edugain = db.Column(db.Integer, nullable=False, default=EdugainStatus.YES.value)
+    sp_edugain = db.Column(db.Integer, nullable=False, default=EdugainStatus.NO.value)
     sp_metadata_sha1 = db.Column(
         db.String(40), nullable=True
     )  # SHA1 hash of eduGAIN metadata

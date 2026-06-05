@@ -70,7 +70,7 @@ FedAdmin assumes that a federation normally has two operational phases:
 - **Beta phase**: The IdP/SP deployment and testing phase. Member organizations can create, edit, delete, and test entities using the beta federation metadata.
 - **Production phase**: The formal federation operation phase. Only `READY` status entities are included in production federation metadata.
 
-For smoother member-side testing, a federation should prepare a small set of test services for the Beta phase. Except for the beta federation metadata feed, these services are deployed according to other eduGAIN guidance and are not included in FedAdmin.
+For smoother member-side testing, a federation should prepare a small set of test services for the Beta phase. Except for the beta federation metadata feed, these services are recommended but are not included in the current FedAdmin implementation.
 
 | Test Service | Type | Purpose |
 |--------------|------|---------|
@@ -94,7 +94,9 @@ FedAdmin supports both opt-in and opt-out models for managing which entities are
 - **Opt-in**: Each IdP/SP must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
 - **Opt-out**: IdP/SP entities participate in eduGAIN by default, with the option to exclude individual entities when needed. This provides a simpler, more automated workflow.
 
-In practice, each IdP/SP has an eduGAIN participation option during entity creation. `fed-metadata-edugain.xml` includes only `READY` status entities whose setting makes them eligible for eduGAIN exchange.
+In practice, each IdP/SP has an eduGAIN participation option during entity creation. The current code default is opt-in: new IdP/SP entities do not participate in eduGAIN unless administrators explicitly enable the option. To operate an opt-out model, change the default value of the IdP/SP eduGAIN participation fields to `YES`, so new entities participate by default and administrators exclude individual entities when needed. `fed-metadata-edugain.xml` includes only `READY` status entities whose setting makes them eligible for eduGAIN exchange.
+
+The default value is currently defined in code. See [Backlog](docs/reference/backlog.md#6-configurable-edugain-participation-default) for the planned configurable default.
 
 See [Guide for Joining eduGAIN as a Federation](https://wiki.geant.org/display/eduGAIN/Guide+for+Joining+eduGAIN+as+a+Federation) for detailed information about eduGAIN participation models and recommendations for your federation.
 

@@ -185,7 +185,21 @@ The placeholder is generated in `./app/services/metadata.py` in the `_create_emp
 
 Consider publication timing carefully to avoid publishing metadata that only contains placeholder entities. Federation metadata should be published only when actual entities are registered and available.
 
-## 6. Multilingual Metadata Support
+## 6. Configurable eduGAIN Participation Default
+
+FedAdmin currently stores an eduGAIN participation option for each IdP/SP entity. This per-entity option determines whether an approved `READY` entity is included in `fed-metadata-edugain.xml`.
+
+The implementation can operate either an opt-in or opt-out policy by changing the default value used for new IdP/SP entities. The current code default is opt-in: new entities do not participate in eduGAIN by default, and administrators must explicitly enable the option for each entity that should be exported to eduGAIN.
+
+**Future Enhancement:**
+Future development should add a federation-level configuration for the default eduGAIN participation value used when new IdP/SP entities are created, so federations can switch between opt-in and opt-out without editing model defaults in code.
+
+- Default `No`: opt-in model. Administrators explicitly include selected IdP/SP entities in eduGAIN.
+- Default `Yes`: opt-out model. New IdP/SP entities participate in eduGAIN by default, and administrators explicitly exclude entities when needed.
+
+This would allow FedAdmin to support both opt-in and opt-out federation policies without changing the per-entity approval and metadata generation workflow.
+
+## 7. Multilingual Metadata Support
 
 FedAdmin currently generates localized SAML metadata elements only in English (`xml:lang="en"`). This applies to organization information such as `OrganizationName`, `OrganizationDisplayName`, and `OrganizationURL`, as well as MDUI elements such as `DisplayName`, `Description`, `InformationURL`, and `PrivacyStatementURL`.
 
@@ -203,7 +217,7 @@ Future development should consider adding configurable multilingual metadata sup
 5. Metadata transformation logic that emits multiple `xml:lang` variants instead of replacing all localized elements with English-only values
 6. Validation or warning checks for missing English or configured local-language variants
 
-## 7. Production Docker Image Slimming
+## 8. Production Docker Image Slimming
 
 The current production Docker image installs build-time packages such as `build-essential` and `python3-dev` directly in the final runtime image. These packages are mainly needed while `pip install -r requirements.txt` builds Python packages with native extensions. The running application normally only needs runtime libraries.
 
@@ -212,7 +226,7 @@ Consider converting `Dockerfile.prod` to a multi-stage build. The builder stage 
 
 This would reduce image size and remove unnecessary compiler tooling from the production container. The change should be tested by building the production image, importing key dependencies such as `xmlsec`, `magic`, and `lxml`, running `pyff --version`, and starting Gunicorn with the production entry point.
 
-## 8. Production Database Backend
+## 9. Production Database Backend
 
 The current production deployment uses SQLite for simplicity. This is acceptable for small, low-concurrency deployments, but the Gunicorn production configuration uses multiple workers and threads, and scheduled jobs can run while administrators are using the web UI. These concurrent write paths may lead to SQLite lock contention under real production load.
 

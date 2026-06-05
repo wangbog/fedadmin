@@ -146,6 +146,6 @@ The following applies to both Identity Provider and Service Provider management:
 
 - `INIT` and `APPROVING` status IdP/SP entities are included in `fed-metadata-beta.xml` for testing and validation
 - `READY` status IdP/SP entities are included in `fed-metadata.xml` for production use
-- `READY` status IdP/SP entities whose eduGAIN participation option was set to `YES` when creating the entity are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
+- `READY` status IdP/SP entities whose eduGAIN participation option was explicitly set to `YES` are also included in `fed-metadata-edugain.xml`, which serves as the federation's metadata feed for eduGAIN
 - When an entity is created or edited, FedAdmin transforms its metadata before regenerating beta metadata. If transformation fails, the entity is saved but beta metadata is not regenerated until the metadata issue is corrected and the entity is saved again.
 - If production metadata cannot be regenerated during approval or withdrawal, the status change is not completed. Follow the on-screen guidance, then retry after the metadata generation issue is fixed.

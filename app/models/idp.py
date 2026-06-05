@@ -20,7 +20,7 @@ class Idp(db.Model):
     idp_entityid = db.Column(db.String(255), nullable=False, unique=True)
     idp_metadata_file = db.Column(db.String(255), nullable=False)
     idp_logo = db.Column(db.String(255), nullable=False)
-    idp_edugain = db.Column(db.Integer, nullable=False, default=EdugainStatus.YES.value)
+    idp_edugain = db.Column(db.Integer, nullable=False, default=EdugainStatus.NO.value)
     idp_metadata_sha1 = db.Column(
         db.String(40), nullable=True
     )  # SHA1 hash of eduGAIN metadata
