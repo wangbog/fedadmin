@@ -17,9 +17,9 @@ storage/
 `-- private/                           # Protected files (with access controlled)
     |-- members/                       # Protected member files
     |   `-- {organization_id}/         # Protected member files for this member
-    |       |-- idp-{idp_id}-metadata.xml              # IdP entity metadata (uploaded by administrator user)
+    |       |-- idp-{idp_id}-metadata.xml              # IdP entity metadata (uploaded by administrator)
     |       |-- idp-{idp_id}-metadata-transformed.xml  # With federation-specific extensions (e.g., mdui)
-    |       |-- sp-{sp_id}-metadata.xml                # SP entity metadata (uploaded by administrator user)
+    |       |-- sp-{sp_id}-metadata.xml                # SP entity metadata (uploaded by administrator)
     |       |-- sp-{sp_id}-metadata-transformed.xml    # With federation-specific extensions (e.g., mdui)
     |       `-- ...                                    # Other private files for this member
     `-- federation/                    # Protected federation files

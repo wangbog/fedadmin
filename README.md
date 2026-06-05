@@ -19,7 +19,7 @@ We decided to share this knowledge and tooling through an open-source project. T
 
 ### Who/When/Why Use FedAdmin
 
-- **Who**: Federation administrators who are responsible for managing their NREN's identity federation.
+- **Who**: Federation administrators who are responsible for operating their NREN's identity federation.
 - **When**: Your NREN has already joined or is in the process of joining eduGAIN, and you are now planning a technical tool to manage the federation's IdPs and SPs.
 - **Why**: 
   - The project is based on practical experience operating identity federation services
@@ -30,7 +30,7 @@ See [eduGAIN: Join As Federation](https://technical.edugain.org/joining_checklis
 
 ## 2. Core Concepts
 
-FedAdmin is organized around six core concepts used by identity federations: two memberships, two admin areas, two operational phases, three metadata files, eduGAIN participation policies, and three entity statuses.
+FedAdmin is organized around six core concepts used by identity federations: two memberships, two types of Admin, two operational phases, three metadata files, eduGAIN participation policies, and three entity statuses.
 
 ### Two Memberships
 
@@ -41,15 +41,15 @@ FedAdmin supports two member organization types:
 
 These membership types determine what a member organization can maintain after it receives access to the system.
 
-### Two Admin Areas
+### Two types of Admin
 
-FedAdmin provides two administration areas.
+FedAdmin provides two administration interfaces.
 
-- **Federation Admin** (`/federation`) is used by Federation Administrators to manage organizations, administrator user accounts, federation configuration, entity approval, metadata aggregation, signing certificates, and metadata publication.
+- **Federation Admin** (`/federation`) is used by Federation Administrators to manage organizations, administrator accounts, federation configuration, entity approval, metadata aggregation, signing certificates, and metadata publication.
 
-- **Member Admin** (`/member`) is used by member organization administrators. After a Federation Administrator creates the member organization, assigns its membership type, and creates one or more administrator user accounts, member organization administrators can log in to manage their own organization profile and administrator users, and add or manage IdP/SP entities allowed by their membership type. A Full Member Administrator can add and manage both IdPs and SPs; an SP Member Administrator can add and manage SPs only.
+- **Member Admin** (`/member`) is used by member organization administrators. After a Federation Administrator creates the member organization, assigns its membership type, and creates one or more administrator accounts, member organization administrators can log in to manage their own organization profile and administrators, and add or manage IdP/SP entities allowed by their membership type. A Full Member Administrator can add and manage both IdPs and SPs; an SP Member Administrator can add and manage SPs only.
 
-See [Administrator User Guide](docs/guides/user_guide.md) for detailed administrator workflows.
+See [Administrator Guide](docs/guides/user_guide.md) for detailed administrator workflows.
 
 ### Member Onboarding Flow
 
@@ -57,9 +57,9 @@ The following table summarizes the current high-level flow for bringing a member
 
 | Stage | Member Organization Administrator | Federation Administrator |
 |-------|-----------------------------------|--------------------------|
-| Membership application | Provides organization and contact information through the federation's current offline or external process | Reviews the application, then creates the organization and administrator user accounts |
-| Technical testing | Logs in to Member Admin, completes organization information, adds or edits IdP/SP entities, and tests them using beta federation metadata | Supports troubleshooting and reviews submitted entities when they are ready for production |
-| Production operation | Submits tested entities for approval, maintains organization and entity information, and withdraws production entities when needed | Approves or rejects submitted entities and publishes production metadata |
+| Membership application | Provides organization and contact information through the federation's current offline or external process | Reviews the application, then creates the organization and administrator accounts |
+| Technical testing | Logs in to the FedAdmin system with a Member Admin account, completes organization information, adds or edits IdP/SP entities, and tests them using beta federation metadata | Supports troubleshooting and reviews submitted entities when they are ready for production |
+| Production operation | Submits tested entities for approval, maintains organization and entity information, and withdraws production entities when needed | Approves or rejects submitted entities and publishes them to the federation production metadata |
 
 The technical testing and production operation stages correspond to the entity status and metadata relationships summarized in the [Concept Map](#concept-map) below.
 
@@ -70,7 +70,7 @@ FedAdmin assumes that a federation normally has two operational phases:
 - **Beta phase**: The IdP/SP deployment and testing phase. Member organizations can create, edit, delete, and test entities using the beta federation metadata.
 - **Production phase**: The formal federation operation phase. Only `READY` status entities are included in production federation metadata.
 
-For smoother member-side testing, a federation should prepare a small set of test services for the Beta phase. These services are recommended federation infrastructure, not components automatically deployed by FedAdmin.
+For smoother member-side testing, a federation should prepare a small set of test services for the Beta phase. Except for the beta federation metadata feed, these services are deployed according to other eduGAIN guidance and are not included in FedAdmin.
 
 | Test Service | Type | Purpose |
 |--------------|------|---------|
@@ -81,15 +81,15 @@ For smoother member-side testing, a federation should prepare a small set of tes
 
 ### Three Metadata Files
 
-The primary deliverables of FedAdmin are federation metadata files stored under `./app/storage/public/federation/` (the final host-side path may vary depending on deployment configuration). FedAdmin automatically aggregates member metadata and signs the federation metadata outputs.
+The primary deliverables of FedAdmin are federation metadata files stored under `./app/storage/public/federation/` (the final host-side path may vary depending on deployment configuration). FedAdmin automatically aggregates member metadata and signs the federation metadata files.
 
 - **`fed-metadata-beta.xml`**: Metadata for entities in the Beta phase. It includes entities in `INIT` or `APPROVING` status.
 - **`fed-metadata.xml`**: Metadata for entities in the Production phase. It includes entities in `READY` status.
-- **`fed-metadata-edugain.xml`**: eduGAIN exchange metadata for `READY` status IdP/SP entities whose eduGAIN participation option is enabled.
+- **`fed-metadata-edugain.xml`**: Outbound eduGAIN exchange metadata containing this federation's `READY` status IdP/SP entities whose eduGAIN participation option is enabled.
 
 ### eduGAIN Participation Policies
 
-FedAdmin supports both opt-in and opt-out models for managing which entities are included in the federation's eduGAIN metadata output:
+FedAdmin supports both opt-in and opt-out models for managing which entities are included in the federation's eduGAIN metadata file:
 
 - **Opt-in**: Each IdP/SP must be explicitly configured to participate in eduGAIN. This gives federations more control over which entities are exposed to eduGAIN.
 - **Opt-out**: IdP/SP entities participate in eduGAIN by default, with the option to exclude individual entities when needed. This provides a simpler, more automated workflow.
@@ -110,9 +110,9 @@ The approval workflow separates member-side testing from production publication.
 
 ### Concept Map
 
-The following table summarizes how entity statuses map to operational phases and metadata outputs, with the relevant admin area and membership context.
+The following table summarizes how entity statuses map to operational phases and metadata files, with the relevant admin roles and membership context.
 
-| Entity Status | Operational Phase | Metadata Output | Admin Area | Membership / Role Context | Meaning |
+| Entity Status | Operational Phase | Metadata File | Admin Role | Membership / Role Context | Meaning |
 |---------------|-------------------|-----------------|------------|---------------------------|---------|
 | `INIT` | Beta phase | `fed-metadata-beta.xml` | Member Admin | Full Member Administrator: IdP/SP; SP Member Administrator: SP only | Entity is being created, edited, and tested |
 | `APPROVING` | Beta phase | `fed-metadata-beta.xml` | Member Admin and Federation Admin | Member organization administrators submit; Federation Administrators review | Entity is under federation review while still testable |
@@ -139,11 +139,11 @@ After customization and validation, use the production deployment guide to run F
 
 See [Production Deployment](docs/deployment/deployment_prod.md)
 
-## 6. Administrator User Guide
+## 6. Administrator Guide
 
 FedAdmin users are federation administrators and member organization administrators, not end users such as students, faculty, or researchers who authenticate through the federation.
 
-See [Administrator User Guide](docs/guides/user_guide.md)
+See [Administrator Guide](docs/guides/user_guide.md)
 
 ## 7. Technical Details
 

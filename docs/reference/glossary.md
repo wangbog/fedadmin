@@ -12,9 +12,9 @@ This glossary defines key terms related to federated identity management and the
 
 ## Specific Terms
 
-- **Federation Administrator** - Administrator user role with full access to all organizations and entities, responsible for federation-wide operations.
-- **Member Administrator** - Administrator user role with access limited to their own organization's data, responsible for managing entities within their organization.
-- **Organization** - An entity that belongs to the federation and can contain administrator users and IdP/SP entities.
+- **Federation Administrator** - Administrator role with full access to all organizations and entities, responsible for federation-wide operations.
+- **Member Administrator** - Administrator role with access limited to their own organization's data, responsible for managing entities within their organization.
+- **Organization** - An entity that belongs to the federation and can contain administrators and IdP/SP entities.
 - **Organization Status** - The current state of an organization (e.g., READY, PENDING).
 - **Entity Status** - The current state of an IdP/SP entity (e.g., INIT, APPROVING, READY).
 - **eduGAIN** - The European educational identity and access management federation, allowing exchange of identity information between national education and research federations.

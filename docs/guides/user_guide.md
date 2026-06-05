@@ -1,22 +1,22 @@
-# Administrator User Guide
+# Administrator Guide
 
-This document provides guidance for FedAdmin administrator users: federation administrators and member organization administrators. It does not describe end-user workflows for students, faculty, researchers, or other people who authenticate through the federation.
+This document provides guidance for FedAdmin administrators: federation administrators and member organization administrators. It does not describe end-user workflows for students, faculty, researchers, or other people who authenticate through the federation.
 
 ## Table of Contents
 
-1. [Administrator User Roles](#administrator-user-roles)
+1. [Administrator Roles](#administrator-roles)
 2. [Federation Initial Setup Process](#federation-initial-setup-process)
-3. [Member Organizations and Administrator Users Management](#member-organizations-and-administrator-users-management)
-4. [Member Organization and Administrator Users Management](#member-organization-and-administrator-users-management)
+3. [Member Organizations and Administrators Management](#member-organizations-and-administrators-management)
+4. [Member Organization Administrators Management](#member-organization-administrators-management)
 5. [Identity Provider Management](#identity-provider-management)
 6. [Service Provider Management](#service-provider-management)
 7. [Note on Metadata Files](#note-on-metadata-files)
 
-## Administrator User Roles
+## Administrator Roles
 
 The FedAdmin system defines two primary administrative categories with distinct permissions and responsibilities. For detailed information about these roles, please refer to the [project README documentation](../../README.md#core-concepts).
 
-**Note**: Administrator users under the `FEDERATION_ADMIN` organization (which is unique) have both Federation Administrator and Full Member Administrator privileges. After login, they can switch between identities using the "Site/Switch to Member(Federation) Admin" link.
+**Note**: Administrators under the `FEDERATION_ADMIN` organization (which is unique) have both Federation Administrator and Full Member Administrator privileges. After login, they can switch between identities using the "Site/Switch to Member(Federation) Admin" link.
 
 ## Federation Initial Setup Process
 
@@ -38,9 +38,9 @@ The FedAdmin system defines two primary administrative categories with distinct 
   - Reference: [SAML V2.0 Metadata Extensions for Registration and Publication Information](https://docs.oasis-open.org/security/saml/Post2.0/saml-metadata-rpi/v1.0/saml-metadata-rpi-v1.0.pdf)
 - All federation administrators should ensure these details are accurate and complete before proceeding with entity registration
 
-## Member Organizations and Administrator Users Management
+## Member Organizations and Administrators Management
 
-**Note**: In FedAdmin, "Users" refers to users of this system: administrator user accounts for Federation Administrators or member organizations. It does not mean end users such as students, faculty, or researchers who authenticate through the federation. The current business flow requires Federation Administrators to manually register Organizations and administrator users. Organizations must be created first by the Federation Administrator, followed by one or more administrator users assigned to each Organization. This process is not designed for self-service registration by member organizations or end users.
+**Note**: In FedAdmin, "Users" refers to users of this system: administrator accounts for Federation Administrators or member organizations. It does not mean end users such as students, faculty, or researchers who authenticate through the federation. The current business flow requires Federation Administrators to manually register Organizations and administrators. Organizations must be created first by the Federation Administrator, followed by one or more administrators assigned to each Organization. This process is not designed for self-service registration by member organizations or end users.
 
 **Required Role**: Federation Administrator
 
@@ -58,10 +58,10 @@ The FedAdmin system defines two primary administrative categories with distinct 
 
 ### 3.2 Manage Users
 - Navigate to `Federation Admin/User` page
-- Create new administrator user accounts and assign them to specific organizations
-- Each administrator user must be associated with an organization before they can be created
-- One organization can have multiple administrator users
-- Administrator users receive appropriate roles based on their organization type
+- Create new administrator accounts and assign them to specific organizations
+- Each administrator must be associated with an organization before they can be created
+- One organization can have multiple administrators
+- Administrators receive appropriate roles based on their organization type
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
 - The link is also shown once on the page for the administrator to copy if needed
@@ -69,16 +69,16 @@ The FedAdmin system defines two primary administrative categories with distinct 
 - Email delivery status can be reviewed in `Federation Admin/System/Email Delivery`
 - Do not send or reuse predictable temporary passwords
 
-## Member Organization and Administrator Users Management
+## Member Organization Administrators Management
 
-**Note**: Member administrator users can only manage their own organization's data and administrator users within their assigned organization. One organization can have multiple administrator users.
+**Note**: Member administrators can only manage their own organization's data and administrators within their assigned organization. One organization can have multiple administrators.
 
 **Required Roles**: Full Member Administrator / SP Member Administrator
 
 ### 4.1 Change Password
 - Navigate to `Site/Change Password` page
-- New organization administrator users normally set their password through the setup/reset link created by their administrator
-- Administrator users can later change their own password from this page
+- New organization administrators normally set their password through the setup/reset link created by their administrator
+- Administrators can later change their own password from this page
 - This is a critical security requirement for protecting administrative access
 
 ### 4.2 Complete Organization Information
@@ -93,8 +93,8 @@ The FedAdmin system defines two primary administrative categories with distinct 
 
 ### 4.3 Manage Organization Users
 - Navigate to `Member Admin/User` page
-- Manage administrator user accounts within your current organization
-- Create, edit, or delete administrator users as needed
+- Manage administrator accounts within your current organization
+- Create, edit, or delete administrators as needed
 - Assign appropriate roles based on your current organization type
 - When a user is created, the system generates a password setup/reset link
 - The system attempts to email the link to the new user
