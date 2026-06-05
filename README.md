@@ -197,3 +197,9 @@ See [Glossary](docs/reference/glossary.md)
 ## 12. License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## 13. Author and Contact
+
+- **Author**: Bo Wang
+- **Organization**: Computer Center, Peking University, China
+- **Email**: wb626@pku.edu.cn
